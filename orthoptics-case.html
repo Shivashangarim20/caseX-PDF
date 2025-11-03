@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Orthoptics Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textareas/inputs for CC, HPI, etc.) span full width */
+        .form-group:has(textarea[name="developmentalHistory"]),
+        .form-group:has(textarea[name="previousVTY_details"]),
+        .form-group:has(textarea[name="strabismusSurgicalHistory_details"]),
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="hpi"]),
+        .form-group:has(textarea[name="diplopiaDetails"]),
+        .form-group:has(textarea[name="headaches_details"]),
+        .form-group:has(textarea[name="readingComputerDemands"]),
+        .form-group:has(textarea[name="poh"]),
+        .form-group:has(textarea[name="pmh"]),
+        .form-group:has(textarea[name="saccades"]),
+        .form-group:has(textarea[name="pursuits"]),
+        .form-group:has(textarea[name="angleDeviation"]),
+        .form-group:has(textarea[name="suppression"]),
+        .form-group:has(textarea[name="correspondence_details"]),
+        .form-group:has(textarea[name="orthopticInvestigations"]),
+        .form-group:has(textarea[name="visualPerceptualSkills"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="vtCompliance_reason"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these fields span all columns */
+        }
+
+        /* Headings for VA, Cover Test, Vergence, Accommodative sections */
+        .va-label { /* Re-using va-label for consistency in general headings */
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA, Cover Test, Vergence, Accommodative) */
+        .va-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Orthoptics Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="orthoptics">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="ORTH-001-AS">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., Alex Smith" required aria-required="true" autofocus value="Alex Smith">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="2012-08-10">
+                </div>
+                <div class="form-group">
+                    <label for="patientAge">Age</label>
+                    <input type="number" id="patientAge" name="patientAge" min="0" max="120" placeholder="e.g., 12" readonly value="12">
+                </div>
+                <div class="form-group">
+                    <label for="developmentalHistory">Developmental History</label>
+                    <textarea id="developmentalHistory" name="developmentalHistory" rows="2" placeholder="e.g., Normal milestones. No known developmental delays.">Normal milestones, good school performance.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Previous Vision Therapy?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="previousVTY_yes" name="previousVisionTherapy" value="Yes" aria-controls="previousVTY_details">
+                        <label for="previousVTY_yes">Yes</label>
+                        <input type="radio" id="previousVTY_no" name="previousVisionTherapy" value="No" checked aria-controls="previousVTY_details">
+                        <label for="previousVTY_no">No</label>
+                    </div>
+                    <textarea id="previousVTY_details" name="previousVTY_details" rows="2" placeholder="Details of previous therapy (e.g., type, duration, outcome)." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="strabismusSurgicalHistory">Strabismus Surgical History?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="strabismusSurgicalHistoryYes" name="strabismusSurgicalHistory" value="Yes" aria-controls="strabismusSurgicalHistory_details">
+                        <label for="strabismusSurgicalHistoryYes">Yes</label>
+                        <input type="radio" id="strabismusSurgicalHistoryNo" name="strabismusSurgicalHistory" value="No" checked aria-controls="strabismusSurgicalHistory_details">
+                        <label for="strabismusSurgicalHistoryNo">No</label>
+                    </div>
+                    <textarea id="strabismusSurgicalHistory_details" name="strabismusSurgicalHistory_details" rows="2" placeholder="Date, Surgeon, Procedure." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC)</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Double vision at near, worse in the evening. / Right eye turns in sometimes." required aria-required="true">Frequent loss of place while reading, sometimes words 'jump' or go blurry. Eye fatigue after 15-20 minutes of reading.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hpi">History of Present Illness (HPI)</label>
+                    <textarea id="hpi" name="hpi" rows="4" placeholder="Onset, duration, severity, modifying factors, specific situations.">Patient reports reading difficulties starting about 6 months ago. He complains of losing his place, skipping lines, and occasional blurry vision. Symptoms are worse in the evenings and after prolonged schoolwork. Denies true double vision but reports eye strain and frontal headaches 3-4 times a week, usually after reading. No known head trauma or systemic conditions. Parents concerned about school performance.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="diplopiaDetails">Diplopia Details (if applicable)</label>
+                    <textarea id="diplopiaDetails" name="diplopiaDetails" rows="2" placeholder="e.g., Intermittent diplopia for 3 months, worse at near, horizontal separation.">N/A</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="diplopiaType">Diplopia Type</label>
+                    <select id="diplopiaType" name="diplopiaType">
+                        <option value="" selected>Select...</option>
+                        <option value="Horizontal">Horizontal</option>
+                        <option value="Vertical">Vertical</option>
+                        <option value="Oblique">Oblique</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="diplopiaFrequency">Diplopia Frequency</label>
+                    <select id="diplopiaFrequency" name="diplopiaFrequency">
+                        <option value="" selected>Select...</option>
+                        <option value="Constant">Constant</option>
+                        <option value="Intermittent">Intermittent</option>
+                        <option value="Only on Gaze">Only on Gaze</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Headaches/Eye Strain? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="headachesYes" name="headachesEyeStrain" value="Yes" required aria-required="true" aria-controls="headaches_details" checked>
+                        <label for="headachesYes">Yes</label>
+                        <input type="radio" id="headachesNo" name="headachesEyeStrain" value="No" required aria-required="true" aria-controls="headaches_details">
+                        <label for="headachesNo">No</label>
+                    </div>
+                    <textarea id="headaches_details" name="headaches_details" rows="2" placeholder="Describe frequency, severity, triggers." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">Frontal headaches 3-4 times a week, after reading, rated 4/10. Relieved by rest.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="readingComputerDemands">Reading/Computer Demands</label>
+                    <textarea id="readingComputerDemands" name="readingComputerDemands" rows="2" placeholder="e.g., Student, 4-6 hours reading/day.">6th-grade student, 3-4 hours reading/day, 1-2 hours computer/day.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History</legend>
+                <div class="form-group">
+                    <label for="poh">Past Ocular History (POH)</label>
+                    <textarea id="poh" name="poh" rows="2">Myopia OU, corrected with glasses. No previous amblyopia or strabismus.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pmh">Past Medical History (PMH)</label>
+                    <textarea id="pmh" name="pmh" rows="2">Mild seasonal allergies, otherwise healthy.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Examination (Orthoptic Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>BCVA OD</label>
+                        <input type="text" name="vaBestCorrectedOD" placeholder="e.g., 20/20 (6/6)" value="20/20">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>BCVA OS</label>
+                        <input type="text" name="vaBestCorrectedOS" placeholder="e.g., 20/20 (6/6)" value="20/20">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>BCVA OU</label>
+                        <input type="text" name="vaBestCorrectedOU" placeholder="e.g., 20/20 (6/6)" value="20/20">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>Near VA OD</label>
+                        <input type="text" name="vaNearOD" placeholder="e.g., J1+ / N4" value="J1+">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>Near VA OS</label>
+                        <input type="text" name="vaNearOS" placeholder="e.g., J1+ / N4" value="J1+">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ocularDominance">Ocular Dominance</label>
+                    <select id="ocularDominance" name="ocularDominance">
+                        <option value="">Select...</option>
+                        <option value="OD" selected>OD</option>
+                        <option value="OS">OS</option>
+                        <option value="Alternating">Alternating</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="headPosture">Head Posture/Turn</label>
+                    <select id="headPosture" name="headPosture">
+                        <option value="None" selected>None</option>
+                        <option value="Right Head Turn">Right Head Turn</option>
+                        <option value="Left Head Turn">Left Head Turn</option>
+                        <option value="Chin Up">Chin Up</option>
+                        <option value="Chin Down">Chin Down</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="fixationOD">Fixation OD</label>
+                        <input type="text" id="fixationOD" name="fixationOD" placeholder="e.g., Central, Steady, Maintained" value="Central, Steady, Maintained">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="fixationOS">Fixation OS</label>
+                        <input type="text" id="fixationOS" name="fixationOS" placeholder="e.g., Central, Steady, Maintained" value="Central, Steady, Maintained">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="saccades">Saccades</label>
+                    <textarea id="saccades" name="saccades" rows="1" placeholder="e.g., Accurate and smooth OU. Hypometric saccades OS.">Accurate and smooth OU.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pursuits">Pursuits</label>
+                    <textarea id="pursuits" name="pursuits" rows="1" placeholder="e.g., Smooth and full OU. Jerky pursuits OD.">Smooth and full OU.</textarea>
+                </div>
+
+                <div class="va-label">Cover Test (Distance & Near)</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="coverTestDistanceUCT">Distance UCT</label>
+                        <input type="text" id="coverTestDistanceUCT" name="coverTestDistanceUCT" placeholder="e.g., Ortho, 2^ XP" value="Ortho">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="coverTestDistanceACT">Distance ACT</label>
+                        <input type="text" id="coverTestDistanceACT" name="coverTestDistanceACT" placeholder="e.g., 6^ XP" value="4^ XP">
+                    </div>
+                </div>
+                 <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="coverTestNearUCT">Near UCT</label>
+                        <input type="text" id="coverTestNearUCT" name="coverTestNearUCT" placeholder="e.g., 4^ XP" value="Ortho">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="coverTestNearACT">Near ACT</label>
+                        <input type="text" id="coverTestNearACT" name="coverTestNearACT" placeholder="e.g., 10^ XP" value="12^ XP">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="angleDeviation">Angle of Deviation (e.g., PACT, Krimsky, etc.)</label>
+                    <textarea id="angleDeviation" name="angleDeviation" rows="2" placeholder="e.g., Distance 10^ XP, Near 14^ XP.">Distance 4^ XP, Near 12^ XP.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Amblyopia Present? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="amblyopiaYes" name="amblyopiaPresent" value="Yes" required aria-required="true" aria-controls="amblyopia_conditional_group">
+                        <label for="amblyopiaYes">Yes</label>
+                        <input type="radio" id="amblyopiaNo" name="amblyopiaPresent" value="No" checked required aria-required="true" aria-controls="amblyopia_conditional_group">
+                        <label for="amblyopiaNo">No</label>
+                    </div>
+                    <div id="amblyopia_conditional_group" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled aria-describedby="amblyopiaYes amblyopiaNo">
+                        <div class="form-group">
+                            <label for="amblyopiaType">Type</label>
+                            <select id="amblyopiaType" name="amblyopiaType" disabled>
+                                <option value="">Select Type</option>
+                                <option value="Strabismic">Strabismic</option>
+                                <option value="Anisometropic">Anisometropic</option>
+                                <option value="Deprivation">Deprivation</option>
+                                <option value="Isometropic">Isometropic</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amblyopiaDepth">Depth</label>
+                            <select id="amblyopiaDepth" name="amblyopiaDepth" disabled>
+                                <option value="">Select Depth</option>
+                                <option value="Mild">Mild</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Severe">Severe</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Strabismus Present? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="strabismusYes" name="strabismusPresent" value="Yes" required aria-required="true" aria-controls="strabismus_conditional_group">
+                        <label for="strabismusYes">Yes</label>
+                        <input type="radio" id="strabismusNo" name="strabismusPresent" value="No" checked required aria-required="true" aria-controls="strabismus_conditional_group">
+                        <label for="strabismusNo">No</label>
+                    </div>
+                    <div id="strabismus_conditional_group" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled aria-describedby="strabismusYes strabismusNo">
+                        <div class="form-group">
+                            <label for="strabismusType">Type</label>
+                            <select id="strabismusType" name="strabismusType" disabled>
+                                <option value="">Select Type</option>
+                                <option value="Esotropia">Esotropia</option>
+                                <option value="Exotropia">Exotropia</option>
+                                <option value="Hypertropia">Hypertropia</option>
+                                <option value="Hypotropia">Hypotropia</option>
+                            </select>
+                        </div>
+                         <div class="form-group">
+                            <label for="strabismusFrequency">Frequency</label>
+                            <select id="strabismusFrequency" name="strabismusFrequency" disabled>
+                                <option value="">Select Frequency</option>
+                                <option value="Constant">Constant</option>
+                                <option value="Intermittent">Intermittent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="strabismusLaterality">Laterality</label>
+                            <select id="strabismusLaterality" name="strabismusLaterality" disabled>
+                                <option value="">Select Laterality</option>
+                                <option value="Unilateral">Unilateral</option>
+                                <option value="Alternating">Alternating</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="va-label">Vergence Amplitudes</div>
+                <div class="form-group">
+                    <label for="npc">Near Point of Convergence (NPC)</label>
+                    <input type="text" id="npc" name="npc" placeholder="e.g., Break 5cm, Recovery 7cm." value="Break 6cm, Recovery 9cm (poor)">
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="pfvDistanceSmooth">PFV Distance (Smooth BO)</label>
+                        <input type="text" id="pfvDistanceSmooth" name="pfvDistanceSmooth" placeholder="e.g., x/7/4" value="x/7/4">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="pfvDistanceJump">PFV Distance (Jump BO)</label>
+                        <input type="text" id="pfvDistanceJump" name="pfvDistanceJump" placeholder="e.g., x/10/6" value="x/10/6">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="pfvNearSmooth">PFV Near (Smooth BO)</label>
+                        <input type="text" id="pfvNearSmooth" name="pfvNearSmooth" placeholder="e.g., 12/18/10" value="12/18/10">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="pfvNearJump">PFV Near (Jump BO)</label>
+                        <input type="text" id="pfvNearJump" name="pfvNearJump" placeholder="e.g., 15/20/12" value="15/20/12">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="nfvDistanceSmooth">NFV Distance (Smooth BI)</label>
+                        <input type="text" id="nfvDistanceSmooth" name="nfvDistanceSmooth" placeholder="e.g., 10/5/2" value="10/5/2">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="nfvDistanceJump">NFV Distance (Jump BI)</label>
+                        <input type="text" id="nfvDistanceJump" name="nfvDistanceJump" placeholder="e.g., 8/4/0" value="8/4/0">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="nfvNearSmooth">NFV Near (Smooth BI)</label>
+                        <input type="text" id="nfvNearSmooth" name="nfvNearSmooth" placeholder="e.g., 14/8/6" value="14/8/6">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="nfvNearJump">NFV Near (Jump BI)</label>
+                        <input type="text" id="nfvNearJump" name="nfvNearJump" placeholder="e.g., 12/7/4" value="12/7/4">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="vergenceFacility">Vergence Facility (e.g., X cpm with X base prism)</label>
+                    <input type="text" id="vergenceFacility" name="vergenceFacility" placeholder="e.g., 10 cpm with 3 BI/BO" value="6 cpm with 3 BI/BO (reduced)">
+                </div>
+
+                <div class="va-label">Accommodative Function</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="aaOD">Amplitude of Accommodation (AA) OD</label>
+                        <input type="text" id="aaOD" name="aaOD" placeholder="e.g., 6D (Push-up)" value="10D (Push-up)">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="aaOS">Amplitude of Accommodation (AA) OS</label>
+                        <input type="text" id="aaOS" name="aaOS" placeholder="e.g., 6D (Push-up)" value="10D (Push-up)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="accommodativeFacility_type">Accommodative Facility</label>
+                    <select id="accommodativeFacility_type" name="accommodativeFacility_type">
+                        <option value="">Select Type</option>
+                        <option value="Mono" selected>Monocular</option>
+                        <option value="Bi">Binocular</option>
+                    </select>
+                    <input type="text" id="accommodativeFacility" name="accommodativeFacility" placeholder="e.g., +/-2.00 flippers: 8 cpm" value="+/-2.00 flippers: 8 cpm (reduced)">
+                </div>
+                <div class="form-group">
+                    <label for="accommodativeResponse">Accommodative Response (MEM Retinoscopy)</label>
+                    <input type="text" id="accommodativeResponse" name="accommodativeResponse" placeholder="e.g., +0.75 lag OU" value="+0.75 lag OU (MEM)">
+                </div>
+
+                <div class="form-group">
+                    <label for="stereopsisOrthoptics">Stereoacuity</label>
+                    <input type="text" id="stereopsisOrthoptics" name="stereopsisOrthoptics" placeholder="e.g., 40 seconds of arc" value="40 seconds of arc">
+                </div>
+                <div class="form-group">
+                    <label for="wirtCircles">Wirt Circles (seconds of arc)</label>
+                    <input type="text" id="wirtCircles" name="wirtCircles" placeholder="e.g., 40" value="40">
+                </div>
+                <div class="form-group">
+                    <label for="randomDotStereo">Random Dot Stereo (seconds of arc)</label>
+                    <input type="text" id="randomDotStereo" name="randomDotStereo" placeholder="e.g., 200" value="200">
+                </div>
+                <div class="form-group">
+                    <label>Fusion Present (Distance/Near)?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="fusionPresentYes" name="fusionPresent" value="Yes" checked>
+                        <label for="fusionPresentYes">Yes</label>
+                        <input type="radio" id="fusionPresentNo" name="fusionPresent" value="No">
+                        <label for="fusionPresentNo">No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Suppression Present (Distance/Near)?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="suppressionPresentYes" name="suppressionPresent" value="Yes" aria-controls="suppression">
+                        <label for="suppressionPresentYes">Yes</label>
+                        <input type="radio" id="suppressionPresentNo" name="suppressionPresent" value="No" checked aria-controls="suppression">
+                        <label for="suppressionPresentNo">No</label>
+                    </div>
+                    <textarea id="suppression" name="suppression" rows="1" placeholder="e.g., Mild OS suppression at near (Worth 4 Dot test)." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="correspondence">Correspondence</label>
+                    <select id="correspondence" name="correspondence" aria-controls="correspondence_details">
+                        <option value="" selected>Select...</option>
+                        <option value="NRC">Normal Retinal Correspondence (NRC)</option>
+                        <option value="ARC">Anomalous Retinal Correspondence (ARC)</option>
+                        <option value="Suppression">Suppression</option>
+                        <option value="Unmeasurable">Unmeasurable</option>
+                    </select>
+                    <textarea id="correspondence_details" name="correspondence_details" rows="1" placeholder="Details if ARC/Other." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Investigations</legend>
+                <div class="form-group">
+                    <label for="orthopticInvestigations">Relevant Investigations</label>
+                    <textarea id="orthopticInvestigations" name="orthopticInvestigations" rows="2" placeholder="e.g., VF, Retinal Imaging if indicated.">None indicated.</textarea>
+                </div>
+                 <div class="form-group">
+                    <label for="visualPerceptualSkills">Visual Perceptual Skills Assessment</label>
+                    <textarea id="visualPerceptualSkills" name="visualPerceptualSkills" rows="3" placeholder="e.g., Reversals noted, visual memory deficits.">Developmental Eye Movement (DEM) Test: Normal horizontal, increased vertical errors. Visual processing speed appears WNL.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Accommodative Insufficiency OU&#10;2. Convergence Insufficiency OU&#10;3. Intermittent Exotropia" required aria-required="true">1. Accommodative Insufficiency OU (H52.513).
+2. Convergence Insufficiency OU (H51.11).
+3. Asthenopia (H53.13).
+4. Intermittent Exophoria (H50.51).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Prescribe prism (e.g., 2^ BI OU for near work).&#10;2. Initiate vision therapy program focusing on vergence and accommodative facility.&#10;3. Vision Therapy Exercises: Pencil push-ups, Brock string, +/- flipper therapy.&#10;4. Patient education on symptoms and exercises.&#10;5. RTC 4 weeks for VT progress check." required aria-required="true">1. Prescribe +0.75 add OU for near work in new spectacles.
+2. Initiate Phase I in-office vision therapy 1x/week for 12 weeks focusing on vergence and accommodative facility.
+3. Home VT Exercises: Pencil push-ups, Brock string, +/- flipper therapy, Lifesaver cards.
+4. Patient education on visual hygiene, blink training.
+5. RTC 4 weeks for VT progress check.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>VT Progress Status</label>
+                    <select id="vtProgressStatus" name="vtProgressStatus">
+                        <option value="">Select...</option>
+                        <option value="Progressing Well">Progressing Well</option>
+                        <option value="Slow Progress">Slow Progress</option>
+                        <option value="Plateau">Plateau</option>
+                        <option value="Regressed">Regressed</option>
+                        <option value="N/A" selected>N/A (new patient)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Home Therapy Compliance?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="vtComplianceYes" name="vtCompliance" value="Yes" aria-controls="vtCompliance_reason">
+                        <label for="vtComplianceYes">Yes</label>
+                        <input type="radio" id="vtComplianceNo" name="vtCompliance" value="No" checked aria-controls="vtCompliance_reason">
+                        <label for="vtComplianceNo">No</label>
+                    </div>
+                    <textarea id="vtCompliance_reason" name="vtCompliance_reason" rows="1" placeholder="Reason for non-compliance." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral to Neuro-Ophthalmology/Pediatric Ophthalmology?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="referralNeuroOphthYes" name="referralNeuroOphth" value="Yes">
+                        <label for="referralNeuroOphthYes">Yes</label>
+                        <input type="radio" id="referralNeuroOphthNo" name="referralNeuroOphth" value="No" checked>
+                        <label for="referralNeuroOphthNo">No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="prognosis">Prognosis</label>
+                    <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Good with consistent therapy.">Good with consistent therapy and home compliance.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Return in 4 weeks for vision therapy progress check. Practice exercises daily as instructed.">Return in 4 weeks for vision therapy progress check. Practice exercises daily as instructed. Avoid prolonged screen time without breaks.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Patient and parents motivated. Emphasized consistency with home therapy. Address visual fatigue and headaches directly.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">Classic presentation of combined AI/CI. Good prognosis with VT. Need to monitor for any underlying systemic issues if progress is poor. The DEM test results confirm oculomotor issues.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="orthoptics-case-script.js"></script>
+    <!-- The PDF export handler script for this case -->
+    <script src="orthoptics-case-pdf.js"></script> 
+</body>
+</html>

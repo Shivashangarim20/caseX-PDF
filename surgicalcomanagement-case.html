@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Surgical Co-management Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textareas/inputs for CC, HPI, etc.) span full width */
+        .form-group:has(textarea[name="surgeryDetails"]),
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="hpi"]),
+        .form-group:has(textarea[name="poh"]),
+        .form-group:has(textarea[name="pmh"]),
+        .form-group:has(textarea[name="allergies"]),
+        .form-group:has(textarea[name="preOpMeds"]),
+        .form-group:has(textarea[name="postOpMedsCurrent"]),
+        .form-group:has(input[name="postOpVisitDate"]), /* This input is within a conditional group for this case */
+        .form-group:has(textarea[name="externalExam_postOp"]),
+        .form-group:has(textarea[name="slitLampExam_postOp"]),
+        .form-group:has(textarea[name="fundusExam_postOp"]),
+        .form-group:has(textarea[name="postOpComplicationsList"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these fields span all columns */
+        }
+
+        /* Headings for VA, Refraction, Biometry, Keratometry */
+        .va-label, .refraction-label, .keratometry-label { /* Re-using va-label for consistency in general headings */
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA, Refraction, Keratometry) */
+        .va-row, .refraction-row, .keratometry-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item, .refraction-row .form-group {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Specific styling for the OD/OS pair within keratometry */
+        .keratometry-row .od-os-pair {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            min-width: 280px; /* Ensure pair doesn't get too small */
+            flex-wrap: wrap; /* Allow K1, K2 to wrap */
+        }
+        .keratometry-row .od-os-pair .form-group {
+            flex: 1; /* K1, K2 share space within the pair */
+            min-width: 80px; /* Min width for kera inputs */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row, .refraction-row, .keratometry-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item, .refraction-row .form-group, .keratometry-row .od-os-pair {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Surgical Co-management Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="surgicalcomanagement">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="SURG-001-MJ">
+                </div>
+    <div class="form-group">
+        <label for="patientName">Name <sup>*</sup></label>
+        <input type="text" id="patientName" name="patientName" placeholder="e.g., Mary Jones" required aria-required="true" autofocus value="Mary Jones">
+    </div>
+    <div class="form-group">
+        <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+        <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="1965-10-25">
+    </div>
+    <div class="form-group">
+        <label for="patientAge">Age</label>
+        <input type="number" id="patientAge" name="patientAge" min="0" max="120" placeholder="e.g., 58" readonly value="58">
+    </div>
+    <div class="form-group">
+        <label for="referringSurgeon">Referring Surgeon</label>
+        <input type="text" id="referringSurgeon" name="referringSurgeon" placeholder="e.g., Dr. Jane Smith (Ophthalmologist)" value="Dr. Robert White">
+    </div>
+    <div class="form-group">
+        <label for="dateOfSurgery">Date of Surgery <sup>*</sup></label>
+        <input type="date" id="dateOfSurgery" name="dateOfSurgery" required aria-required="true" value="2024-04-15">
+    </div>
+    <div class="form-group">
+        <label for="typeOfSurgery">Type of Surgery <sup>*</sup></label>
+        <select id="typeOfSurgery" name="typeOfSurgery" required aria-required="true" aria-controls="surgeryDetails">
+            <option value="">Select...</option>
+            <option value="Cataract Extraction (Phaco)" selected>Cataract Extraction (Phaco)</option>
+            <option value="LASIK">LASIK</option>
+            <option value="PRK">PRK</option>
+            <option value="ICL (Implantable Collamer Lens)">ICL (Implantable Collamer Lens)</option>
+            <option value="Glaucoma Surgery (e.g., Trabeculectomy)">Glaucoma Surgery</option>
+            <option value="Retinal Surgery (e.g., Vitrectomy)">Retinal Surgery</option>
+            <option value="Pterygium Excision">Pterygium Excision</option>
+            <option value="Eyelid Surgery">Eyelid Surgery</option>
+            <option value="Other">Other (describe below)</option>
+        </select>
+        <textarea id="surgeryDetails" name="surgeryDetails" rows="2" placeholder="Specify other surgery details." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>Chief Complaint (CC)</legend>
+    <div class="form-group">
+        <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+        <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Post-operative check-up for cataract surgery OD. / Blurry vision after LASIK OS." required aria-required="true">Post-operative check-up for cataract surgery OD. Mild irritation.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="hpi">History of Present Illness (HPI)</label>
+        <textarea id="hpi" name="hpi" rows="3" placeholder="Details about symptoms, post-op course, adherence to drops.">Patient underwent uneventful phacoemulsification with IOL implant in OD on 2024-04-15 by Dr. White. Reports improved vision but mild gritty sensation. Compliant with drops. Denies severe pain, flashes, or floaters.</textarea>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>History</legend>
+    <div class="form-group">
+        <label for="poh">Past Ocular History (POH)</label>
+        <textarea id="poh" name="poh" rows="2" placeholder="e.g., Previous ocular surgeries, glaucoma history.">Advanced nuclear sclerotic cataract OD. Mild dry eye OU.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="pmh">Past Medical History (PMH)</label>
+        <textarea id="pmh" name="pmh" rows="2" placeholder="e.g., Diabetes, Hypertension.">Controlled Hypertension (Lisinopril 10mg QD), Type 2 Diabetes (Metformin 500mg BID).</textarea>
+    </div>
+    <div class="form-group">
+        <label for="allergies">Allergies</label>
+        <textarea id="allergies" name="allergies" rows="1" placeholder="e.g., Penicillin.">Penicillin (rash).</textarea>
+    </div>
+    <div class="form-group">
+        <label for="preOpMeds">Pre-operative Medications</label>
+        <textarea id="preOpMeds" name="preOpMeds" rows="2" placeholder="e.g., Pred Forte TID OD (3 days prior).">Vigamox QID OD (3 days prior). Pred Forte QID OD (2 days prior).</textarea>
+    </div>
+    <div class="form-group">
+        <label for="postOpMedsCurrent">Current Post-operative Medications <sup>*</sup></label>
+        <textarea id="postOpMedsCurrent" name="postOpMedsCurrent" rows="3" placeholder="e.g., Pred Forte QID OD, Moxifloxacin QID OD." required aria-required="true">Pred Forte QID OD, Nevanac TID OD, Moxifloxacin QID OD.</textarea>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>Pre-Operative Assessment (if applicable)</legend>
+    <div class="va-row">
+        <div class="form-group va-item">
+            <label>Pre-op VA OD</label>
+            <input type="text" name="preOpVA_OD" placeholder="e.g., 20/80" value="20/80">
+        </div>
+        <div class="form-group va-item">
+            <label>Pre-op VA OS</label>
+            <input type="text" name="preOpVA_OS" placeholder="e.g., 20/20" value="20/25">
+        </div>
+    </div>
+    <div class="refraction-row">
+        <div class="form-group">
+            <label>Pre-op Refraction OD</label>
+            <input type="text" name="preOpRefraction_OD" placeholder="e.g., -1.00 -2.00 x 90" value="-1.00 -2.00 x 90">
+        </div>
+        <div class="form-group">
+            <label>Pre-op Refraction OS</label>
+            <input type="text" name="preOpRefraction_OS" placeholder="e.g., -1.75 DS" value="-1.75 DS">
+        </div>
+    </div>
+    <div class="va-row">
+        <div class="form-group va-item">
+            <label for="biometryAxialLengthOD">Axial Length OD (mm)</label>
+            <input type="number" id="biometryAxialLengthOD" name="biometryAxialLengthOD" step="0.01" placeholder="e.g., 23.50" value="23.50">
+        </div>
+        <div class="form-group va-item">
+            <label for="biometryAxialLengthOS">Axial Length OS (mm)</label>
+            <input type="number" id="biometryAxialLengthOS" name="biometryAxialLengthOS" step="0.01" placeholder="e.g., 23.60" value="23.60">
+        </div>
+    </div>
+    <div class="keratometry-row">
+        <div class="od-os-pair">
+            <div class="form-group">
+                <label for="biometryK1OD">Pre-op K1 OD</label>
+                <input type="text" id="biometryK1OD" name="biometryK1OD" placeholder="e.g., 43.50" value="43.50 @ 180">
+            </div>
+            <div class="form-group">
+                <label for="biometryK2OD">Pre-op K2 OD</label>
+                <input type="text" id="biometryK2OD" name="biometryK2OD" placeholder="e.g., 44.00" value="44.00 @ 90">
+            </div>
+        </div>
+        <div class="od-os-pair">
+            <div class="form-group">
+                <label for="biometryK1OS">Pre-op K1 OS</label>
+                <input type="text" id="biometryK1OS" name="biometryK1OS" placeholder="e.g., 43.75" value="43.75 @ 175">
+            </div>
+            <div class="form-group">
+                <label for="biometryK2OS">Pre-op K2 OS</label>
+                <input type="text" id="biometryK2OS" name="biometryK2OS" placeholder="e.g., 44.25" value="44.25 @ 85">
+            </div>
+        </div>
+    </div>
+    <div class="va-row">
+        <div class="form-group va-item">
+            <label for="iop_preOp_OD">Pre-op IOP OD (mmHg)</label>
+            <input type="text" id="iop_preOp_OD" name="iop_preOp_OD" placeholder="e.g., 15" value="15">
+        </div>
+        <div class="form-group va-item">
+            <label for="iop_preOp_OS">Pre-op IOP OS (mmHg)</label>
+            <input type="text" id="iop_preOp_OS" name="iop_preOp_OS" placeholder="e.g., 16" value="16">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="endothelialCellCountOD">Endothelial Cell Count OD (cells/mm²)</label>
+        <input type="number" id="endothelialCellCountOD" name="endothelialCellCountOD" placeholder="e.g., 2500" value="2500">
+    </div>
+    <div class="form-group">
+        <label for="endothelialCellCountOS">Endothelial Cell Count OS (cells/mm²)</label>
+        <input type="number" id="endothelialCellCountOS" name="endothelialCellCountOS" placeholder="e.g., 2600" value="2600">
+    </div>
+    <div class="form-group">
+        <label for="preOpLensStatus">Pre-op Lens Status</label>
+        <select id="preOpLensStatus" name="preOpLensStatus">
+            <option value="">Select...</option>
+            <option value="Clear">Clear</option>
+            <option value="NSC" selected>NSC (Nuclear Sclerotic Cataract)</option>
+            <option value="Cortical">Cortical Cataract</option>
+            <option value="PSC">PSC (Posterior Subcapsular Cataract)</option>
+            <option value="Other">Other</option>
+        </select>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>Post-Operative Examination</legend>
+    <div class="form-group">
+        <label for="postOpVisitType">Post-op Visit Type <sup>*</sup></label>
+        <select id="postOpVisitType" name="postOpVisitType" required aria-required="true" aria-controls="postOpVisitDate_group">
+            <option value="">Select...</option>
+            <option value="Day 1" selected>Day 1 Post-op</option>
+            <option value="Week 1">Week 1 Post-op</option>
+            <option value="Month 1">Month 1 Post-op</option>
+            <option value="Month 3">Month 3 Post-op</option>
+            <option value="Month 6">Month 6 Post-op</option>
+            <option value="Annual">Annual Post-op</option>
+            <option value="PRN">PRN (As needed)</option>
+        </select>
+        <div id="postOpVisitDate_group" class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">
+            <label for="postOpVisitDate">Date of this specific post-op visit</label>
+            <input type="date" id="postOpVisitDate" name="postOpVisitDate" value="2024-04-16">
+        </div>
+    </div>
+    <div class="va-row">
+        <div class="form-group va-item">
+            <label>Post-op VA OD</label>
+            <input type="text" name="postOpVA_OD" placeholder="e.g., 20/25 (6/7.5)" value="20/40">
+        </div>
+        <div class="form-group va-item">
+            <label>Post-op VA OS</label>
+            <input type="text" name="postOpVA_OS" placeholder="e.g., 20/20 (6/6)" value="20/25">
+        </div>
+    </div>
+    <div class="refraction-row">
+        <div class="form-group">
+            <label>Post-op Refraction OD</label>
+            <input type="text" name="postOpRefraction_OD" placeholder="e.g., +0.25 DS" value="+0.25 -0.50 x 175">
+        </div>
+        <div class="form-group">
+            <label>Post-op Refraction OS</label>
+            <input type="text" name="postOpRefraction_OS" placeholder="e.g., -0.50 DS" value="-1.75 DS">
+        </div>
+    </div>
+    <div class="va-row">
+        <div class="form-group va-item">
+            <label for="iop_postOp_OD">Post-op IOP OD (mmHg)</label>
+            <input type="text" id="iop_postOp_OD" name="iop_postOp_OD" placeholder="e.g., 12" value="12">
+        </div>
+        <div class="form-group va-item">
+            <label for="iop_postOp_OS">Post-op IOP OS (mmHg)</label>
+            <input type="text" id="iop_postOp_OS" name="iop_postOp_OS" placeholder="e.g., 14" value="15">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="externalExam_postOp">External Exam (Post-op)</label>
+        <textarea id="externalExam_postOp" name="externalExam_postOp" rows="2" placeholder="e.g., Lids/lashes WNL. No discharge or edema.">Lids/lashes WNL. Mild conjunctival injection OD. No discharge or edema.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="slitLampExam_postOp">Slit Lamp Exam (Post-op) <sup>*</sup></label>
+        <textarea id="slitLampExam_postOp" name="slitLampExam_postOp" rows="4" placeholder="e.g., OD: Conjunctiva quiet. Clear cornea. AC deep & quiet. IOL well-centered, clear. Posterior capsule clear. OS: WNL." required aria-required="true">OD: Conjunctiva 1+ injection. Clear cornea, mild corneal edema. AC deep & 1+ cell/flare. IOL well-centered, clear. Posterior capsule clear. OS: WNL.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="fundusExam_postOp">Fundus Exam (Post-op)</label>
+        <textarea id="fundusExam_postOp" name="fundusExam_postOp" rows="3" placeholder="e.g., OD: Optic disc, macula, vessels, periphery WNL. OS: WNL.">OD: Optic disc C/D 0.3, macula WNL. Vessels WNL. OS: WNL.</textarea>
+    </div>
+    <div class="form-group">
+        <label>Post-operative Complications? <sup>*</sup></label>
+        <div class="input-group-inline">
+            <input type="radio" id="postOpComplicationsYes" name="postOpComplications" value="Yes" required aria-required="true" aria-controls="postOpComplicationsList" checked>
+            <label for="postOpComplicationsYes">Yes</label>
+            <input type="radio" id="postOpComplicationsNo" name="postOpComplications" value="No" required aria-required="true" aria-controls="postOpComplicationsList">
+            <label for="postOpComplicationsNo">No</label>
+        </div>
+        <textarea id="postOpComplicationsList" name="postOpComplicationsList" rows="3" placeholder="e.g., Mild corneal edema OD. / Trace AC cell OS." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">Mild corneal edema OD, 1+ AC cell/flare OD.</textarea>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>Assessment & Plan</legend>
+    <div class="form-group">
+        <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+        <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Pseudophakia OD, stable post-cataract surgery.&#10;2. Mild corneal edema OD, resolving.&#10;3. Visually adapted well to IOL." required aria-required="true">1. Pseudophakia OD (Z96.1) s/p cataract surgery, stable.
+2. Post-operative inflammation OD (H27.0).
+3. Mild corneal edema OD (H16.009).
+4. Controlled Hypertension (I10), Type 2 Diabetes (E11.9).</textarea>
+    </div>
+    <div class="form-group">
+        <label for="plan">Plan <sup>*</sup></label>
+        <textarea id="plan" name="plan" rows="5" placeholder="1. Continue Pred Forte TID OD, tapering to BID next week.&#10;2. OTC artificial tears QID OD PRN.&#10;3. RTC 4 weeks for final refraction and glasses prescription.&#10;4. Patient education on visual recovery and medication schedule.&#10;5. Report to Dr. Smith regarding post-op course." required aria-required="true">1. Continue Pred Forte QID OD, Nevanac TID OD, Moxifloxacin QID OD.
+2. Increase Pred Forte to Q2H OD for corneal edema and inflammation.
+3. OTC artificial tears QID OD PRN.
+4. Report immediate post-op course to Dr. White.
+5. RTC Day 3 post-op for re-evaluation.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="prognosis">Prognosis</label>
+        <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Excellent visual outcome expected.">Good visual outcome expected with resolution of post-operative inflammation.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="followUpInstructions">Follow Up Instructions</label>
+        <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Continue drops as prescribed. Avoid rubbing eye. Return in 4 weeks for follow-up.">Continue all drops as prescribed. Avoid rubbing eye. Contact office immediately for severe pain, significant vision loss, or discharge. Return Day 3 post-op.</textarea>
+    </div>
+</fieldset>
+
+<fieldset class="section">
+    <legend>Notes & Reflection</legend>
+    <div class="form-group">
+        <label for="internalNotes">Internal Notes (Not for Patient)</label>
+        <textarea id="internalNotes" name="internalNotes" rows="3">Patient tolerated exam well. Explained post-op inflammation to patient, reassured. Emphasized importance of frequent Pred Forte.</textarea>
+    </div>
+    <div class="form-group">
+        <label for="notesReflection">Personal Reflection/Learning Points</label>
+        <textarea id="notesReflection" name="notesReflection" rows="4">Early post-op inflammation is common, especially in diabetic patients. Aggressive steroid management is key. Importance of clear communication with patient and surgeon for co-management.</textarea>
+    </div>
+</fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="surgicalcomanagement-case-script.js"></script>
+    <!-- The PDF export handler script for this case -->
+    <script src="surgicalcomanagement-case-pdf.js"></script> 
+</body>
+</html>

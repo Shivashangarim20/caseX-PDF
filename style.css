@@ -1,0 +1,889 @@
+/* Basic Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Colors */
+    --primary-color-dark: #004d80;
+    --primary-color-light: #004d80;
+    --text-color-dark: #333;
+    --text-color-medium: #555;
+    --text-color-light: #6c757d;
+    --background-light: #eef2f7;
+    --background-white: #ffffff;
+    --background-off-white: #fdfdfd;
+    --background-very-light-grey: #fcfcfc;
+    --background-disabled: #e9ecef;
+    --border-color-light: #dcdcdc;
+    --border-color-medium: #ccc;
+    --border-color-dark: #eee;
+    --success-color: #28a745;
+    --success-color-dark: #218838;
+    --warning-color: #ffc107;
+    --warning-color-dark: #e0a800;
+    --danger-color: red;
+    --focus-ring-color: rgba(0, 123, 255, 0.4); /* Softer focus ring */
+
+    /* Spacing */
+    --spacing-xs: 5px;
+    --spacing-sm: 7px;
+    --spacing-md: 10px;
+    --spacing-lg: 15px;
+    --spacing-xl: 20px;
+    --spacing-xxl: 25px;
+    --spacing-xxxl: 30px;
+    --spacing-xxxxl: 40px;
+    --spacing-xxxxxl: 50px;
+
+    /* Borders & Shadows */
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 10px;
+    --border-radius-xl: 12px;
+    --box-shadow-sm: 0 2px 8px rgba(0, 123, 255, 0.2); /* For links */
+    --box-shadow-md: 0 4px 15px rgba(0, 0, 0, 0.1); /* For header */
+    --box-shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.1); /* For containers */
+    --box-shadow-inner: 0 2px 10px rgba(0, 0, 0, 0.03); /* For fieldsets */
+    --box-shadow-button-base: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --box-shadow-button-hover: 0 5px 15px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: var(--background-light);
+    color: var(--text-color-dark);
+    padding: var(--spacing-xl);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: var(--primary-color-dark);
+    color: white;
+    padding: var(--spacing-lg) var(--spacing-xxl);
+    margin-bottom: var(--spacing-xxl);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--box-shadow-md);
+    flex-wrap: wrap;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+    flex-shrink: 0;
+    line-height: 1.2;
+}
+
+header nav {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: var(--spacing-xl);
+}
+
+header nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    white-space: nowrap;
+    /* Add focus style for accessibility */
+    outline: 2px solid transparent; /* default transparent outline */
+    outline-offset: 2px;
+}
+
+header nav a:hover {
+    background-color: var(--primary-color-light);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+header nav a:focus {
+    outline-color: white; /* White outline on focus for contrast */
+}
+
+main {
+    flex-grow: 1;
+    padding-left: var(--spacing-xl); /* Add horizontal padding to main */
+    padding-right: var(--spacing-xl); /* Add horizontal padding to main */
+    box-sizing: border-box; /* Include padding in main's width */
+}
+
+.case-selection-container {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: var(--background-white);
+    padding: var(--spacing-xxxxl);
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--box-shadow-lg);
+    text-align: center;
+}
+.case-selection-container h2 {
+    color: var(--primary-color-dark);
+    margin-bottom: 35px;
+    font-size: 2.2em;
+    font-weight: 600;
+}
+.case-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-xxl);
+    margin-top: var(--spacing-xl);
+}
+.case-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px var(--spacing-xxl);
+    background-color: var(--primary-color-light);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    font-weight: bold;
+    font-size: 1.15em;
+    box-shadow: var(--box-shadow-sm);
+    text-align: center;
+    min-height: 90px; /* ✅ Makes all buttons same height */
+}
+.case-list li a:hover {
+    background-color: var(--primary-color-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+}
+.case-list li a:focus {
+    outline-color: var(--primary-color-light); /* Highlight with primary color on focus */
+}
+
+.case-sheet-container {
+    max-width: 1000px;
+    margin: var(--spacing-xl) auto;
+    background-color: var(--background-white);
+    padding: 35px;
+    border-radius: var(--border-radius-xl);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.section {
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-xxl);
+    margin-bottom: var(--spacing-xxxl);
+    background-color: var(--background-off-white);
+    box-shadow: var(--box-shadow-inner);
+}
+
+.section legend {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: var(--primary-color-dark);
+    padding: 0 var(--spacing-lg);
+    margin-left: calc(-1 * var(--spacing-lg)); /* Adjust to align with fieldset border */
+    background-color: var(--background-off-white);
+    border-radius: var(--border-radius-sm);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-xl);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-color-medium);
+    font-size: 0.98em;
+}
+.form-group label sup {
+    color: var(--danger-color);
+    font-size: 0.8em;
+    vertical-align: super;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px var(--spacing-lg);
+    border: 1px solid var(--border-color-medium);
+    border-radius: var(--border-radius-sm);
+    font-size: 1em;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: var(--background-very-light-grey);
+    color: var(--text-color-dark);
+    /* Add focus style for accessibility */
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color-light);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+/* Inline groups for checkboxes/radios and WNL toggles */
+.input-group-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xs);
+}
+.input-group-inline label {
+    margin-bottom: 0;
+    font-weight: normal;
+    color: var(--text-color-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    /* Reset outline for labels if input has its own focus style */
+    outline: none;
+}
+.input-group-inline input[type="checkbox"],
+.input-group-inline input[type="radio"] {
+    width: auto;
+    margin-right: 0;
+    transform: scale(1.2);
+    cursor: pointer;
+    /* Add focus style directly to input for accessibility */
+    outline: none;
+    box-shadow: 0 0 0 2px transparent; /* Default transparent shadow for focus */
+}
+/* Hover/Focus states for radio/checkbox labels */
+.input-group-inline label:hover {
+    color: var(--primary-color-light);
+}
+.input-group-inline input[type="radio"]:focus,
+.input-group-inline input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 2px var(--focus-ring-color); /* Subtle focus ring for accessibility */
+    border-radius: 3px;
+}
+
+.input-group-inline textarea {
+    flex-grow: 1;
+    min-width: 200px;
+}
+
+/* Specific styling for VA/IOP/Refraction, etc. to align them */
+.va-row, .iop-row, .refraction-row, .keratometry-row, .prism-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    align-items: flex-start;
+}
+.od-os-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    background-color: #f9f9f9;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color-dark);
+}
+.od-os-pair .form-group {
+    margin-bottom: 0;
+}
+.od-os-pair label {
+    font-size: 0.9em;
+    color: var(--text-color-medium);
+    font-weight: normal;
+    margin-bottom: var(--spacing-xs);
+}
+.od-os-pair input, .od-os-pair select, .od-os-pair textarea {
+    font-size: 0.95em;
+    padding: 10px 12px;
+}
+
+.va-label, .iop-label, .refraction-label {
+    grid-column: 1 / -1;
+    margin-bottom: var(--spacing-lg);
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--text-color-dark);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px dashed var(--border-color-light);
+}
+
+/* Disabled styling */
+input:disabled,
+textarea:disabled,
+select:disabled {
+    background-color: var(--background-disabled);
+    color: var(--text-color-light);
+    cursor: not-allowed;
+    opacity: 0.8; /* Subtle visual cue for disabled */
+}
+
+/* Conditional groups by default hidden, styled when shown by JS */
+.conditional-group {
+    display: none; /* Controlled by JS */
+    margin-top: var(--spacing-lg);
+    padding-left: var(--spacing-md);
+    border-left: 3px solid var(--primary-color-light);
+    border-radius: var(--border-radius-xs); /* For the left border */
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    background-color: var(--background-off-white);
+}
+.conditional-group .form-group {
+    margin-bottom: var(--spacing-md);
+}
+.conditional-group textarea,
+.conditional-group input[type="text"],
+.conditional-group select,
+.conditional-group input[type="number"] {
+    margin-top: 0; /* space within the group is handled by form-group margin */
+}
+
+
+/* Form Actions Buttons */
+.form-actions {
+    text-align: right;
+    /* Removed margin-top and padding-top to place it at the top */
+    border-top: 1px solid var(--border-color-dark); /* Keep top border if needed for separation */
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-xl); /* Add padding for buttons */
+    margin-bottom: var(--spacing-xxxl); /* Space after buttons, before first fieldset */
+    background-color: var(--background-off-white); /* Match fieldset background */
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-inner);
+}
+.form-actions-top {
+    margin-top: 0; /* Override default main container margin-top */
+    border-bottom: 1px solid var(--border-color-dark); /* Add bottom border for visual separation */
+    border-top: none; /* Remove top border if it's the first element */
+}
+
+.form-actions button {
+    padding: 13px 28px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 1.05em;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: var(--box-shadow-button-base);
+    font-weight: 600;
+    /* Add focus style for accessibility */
+    outline: none;
+    box-shadow: 0 0 0 2px transparent; /* Default transparent shadow for focus */
+}
+
+#clearForm {
+    background-color: var(--warning-color);
+    color: var(--text-color-dark);
+}
+#clearForm:hover {
+    background-color: var(--warning-color-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-button-hover) rgba(255, 193, 7, 0.3);
+}
+#clearForm:focus {
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+/* NEW: Style for Demo Data button */
+#fillDemoData {
+    background-color: #6c757d; /* A neutral gray */
+    color: white;
+}
+#fillDemoData:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-button-hover) rgba(108, 117, 125, 0.3);
+}
+#fillDemoData:focus {
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+
+#saveCase, #downloadPdf { /* Updated selector to include downloadPdf button */
+    background-color: var(--primary-color-light);
+    color: white;
+}
+#saveCase:hover, #downloadPdf:hover { /* Updated selector */
+    background-color: var(--primary-color-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-button-hover) rgba(0, 123, 255, 0.3);
+}
+#saveCase:focus, #downloadPdf:focus { /* Updated selector */
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+
+footer {
+    text-align: center;
+    margin-top: var(--spacing-xxxxxl);
+    padding: var(--spacing-xxl);
+    color: #777;
+    font-size: 0.9em;
+    border-top: 1px solid var(--border-color-dark);
+    background-color: #f4f7f6;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 992px) {
+    main {
+        padding-left: var(--spacing-lg);
+        padding-right: var(--spacing-lg);
+    }
+    .case-sheet-container {
+        padding: var(--spacing-xxl);
+        margin: var(--spacing-lg) auto;
+    }
+    .section legend {
+        font-size: 1.3em;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: var(--spacing-md);
+    }
+    header {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg);
+    }
+    header h1 {
+        font-size: 1.6em;
+    }
+    header nav {
+        margin-left: 0;
+        justify-content: center;
+        width: 100%;
+    }
+    header nav a {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+    main {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+    .case-selection-container {
+        padding: var(--spacing-xl);
+        margin: var(--spacing-md) auto;
+    }
+    .section {
+        padding: 18px;
+        margin-bottom: var(--spacing-xl);
+    }
+    .section legend {
+        font-size: 1.1em;
+        margin-left: -8px;
+        padding: 0 8px;
+    }
+    .form-group label {
+        font-size: 0.9em;
+        margin-bottom: var(--spacing-xs);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        font-size: 0.9em;
+        padding: 10px 12px;
+    }
+    .va-row, .iop-row, .refraction-row, .keratometry-row, .prism-row, .od-os-pair {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+    .od-os-pair {
+        padding: var(--spacing-md);
+    }
+    .va-label, .iop-label, .refraction-label {
+        font-size: 1.05em;
+        margin-bottom: var(--spacing-md);
+    }
+    .form-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        /* Adjusted for top placement */
+        margin-top: var(--spacing-xl); 
+        padding-top: var(--spacing-md);
+    }
+    .form-actions button {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 1em;
+    }
+
+    .input-group-inline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+    .input-group-inline label {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.4em;
+    }
+    header nav a {
+        font-size: 0.8em;
+        padding: var(--spacing-xs) 8px;
+    }
+    .case-list {
+        grid-template-columns: 1fr;
+    }
+    .case-list li a {
+        font-size: 1em;
+        padding: 12px var(--spacing-lg);
+    }
+}
+
+/* --- PRINT MEDIA STYLES FOR PDF LAYOUT --- */
+/* This section is CRITICAL for the PDF output with html2canvas */
+@media print {
+    /* Critical: Ensure background colors and images are printed */
+    html, body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background-color: #ffffff !important; /* Force white background */
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important; /* Allow content to dictate height */
+    }
+
+    /* Hide UI elements not relevant for print */
+    header, footer, .form-actions, .case-selection-container, .form-actions-top { /* Hide all action buttons for print */
+        display: none !important; 
+    }
+
+    /* General body and main container adjustments for print */
+    body {
+        padding: 10mm !important; /* Add some margin around the entire document */
+        color: #000 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 9pt !important; /* Smaller font for more content on page */
+        line-height: 1.3 !important; /* Adjusted line height for print */
+        min-height: auto !important; /* Reset min-height */
+        display: block !important; /* Reset flex display */
+    }
+
+    main.case-sheet-container {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important; /* Use full width for print */
+        max-width: 100% !important;
+        overflow: visible !important; /* Ensure content is not clipped */
+    }
+
+    /* Fieldsets and Legends for clear sectioning */
+    fieldset.section {
+        border: 1px solid #a0a0a0 !important; /* Darker border for visibility */
+        border-radius: 0 !important; /* No rounded corners for print */
+        padding: 5mm 8mm !important; /* Consistent padding */
+        margin-bottom: 8mm !important; /* Spacing between sections */
+        background-color: #ffffff !important;
+        page-break-inside: avoid; /* Keep fieldsets from breaking across pages */
+        box-shadow: none !important;
+        position: relative; /* For legend positioning */
+        overflow: hidden; /* Ensure content doesn't flow outside fieldset */
+    }
+
+    legend {
+        background-color: #e9e9e9 !important; /* Light gray background for legends */
+        border: 1px solid #a0a0a0 !important;
+        padding: 1.5mm 4mm !important;
+        font-weight: bold !important;
+        font-size: 10pt !important; /* Make legends stand out */
+        color: var(--primary-color-dark) !important;
+        display: inline-block !important; /* Change to inline-block for precise positioning */
+        position: absolute !important;
+        top: -6mm !important; /* Move legend up to sit on the border */
+        left: 5mm !important; /* Align left */
+        white-space: nowrap; /* Prevent legend text from wrapping */
+        z-index: 10; /* Ensure legend is above content */
+    }
+
+    /* Form Group Styling: Use flexbox for aligned label-value pairs */
+    .form-group {
+        margin-bottom: 2mm !important; /* Reduced margin */
+        display: flex !important; /* Use flex for consistent label-input alignment */
+        flex-wrap: wrap; /* Allow wrapping */
+        align-items: baseline; /* Align labels and inputs */
+        gap: 1mm 4mm !important; /* Space between label and input */
+        padding: 0 1mm !important; /* Small padding within form-group */
+        min-height: 5mm; /* Ensure a minimum height for all form groups, even empty ones */
+    }
+
+    .form-group label {
+        display: inline-block !important; /* Treat labels as inline blocks */
+        min-width: 35mm !important; /* Minimum width for labels to align better */
+        font-weight: 600 !important;
+        color: #333 !important;
+        font-size: 9pt !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0; /* Prevent label from shrinking */
+        line-height: 1.3 !important;
+    }
+    .form-group label sup {
+        color: var(--danger-color) !important;
+    }
+
+    /* Input Fields, Selects, Textareas: Style as "filled data" rather than interactive inputs */
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group select,
+    .form-group textarea {
+        border: none !important; /* Remove borders by default */
+        border-bottom: 1px solid #cccccc !important; /* Use a bottom border to represent value area */
+        padding: 0 1mm !important; /* Minimal padding */
+        font-size: 9pt !important;
+        background-color: #ffffff !important; /* White background */
+        color: #000 !important;
+        width: auto !important; /* Allow width to be determined by content or flex grow */
+        flex-grow: 1; /* Allow input to fill remaining space */
+        min-width: 40mm !important; /* Ensure inputs don't become too small */
+        max-width: 100% !important; /* Prevent overflow */
+        height: auto !important; /* Critical for textarea content visibility */
+        overflow: visible !important; /* Ensure content is visible */
+        resize: none !important; /* Prevent resize handles */
+        box-shadow: none !important; /* Remove shadows */
+        line-height: 1.3 !important; /* Match line height */
+    }
+    /* Hide the select dropdown arrow in print */
+    .form-group select {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important; /* Remove any custom arrow background */
+    }
+
+    textarea {
+        min-height: 8mm !important; /* Minimum height for textareas */
+        padding: 1mm 1mm !important; /* Add some vertical padding for textareas */
+    }
+    /* Style for disabled inputs (read-only data) */
+    input:disabled,
+    textarea:disabled,
+    select:disabled {
+        background-color: #f5f5f5 !important; /* Slightly greyed out for clarity */
+        color: #333 !important;
+        cursor: default !important;
+        opacity: 1 !important; /* Fully visible */
+    }
+
+    /* Inline groups (checkboxes/radios): Ensure they look good on print */
+    .input-group-inline {
+        display: flex !important; /* Keep as flex */
+        flex-wrap: wrap;
+        gap: 4mm 8mm !important; /* Space between items */
+        margin-top: 0 !important; /* Remove top margin */
+        padding-left: 0 !important; /* Remove padding */
+        flex-grow: 1; /* Allow group to take space */
+    }
+    .input-group-inline label {
+        display: flex !important;
+        align-items: center;
+        gap: 2mm !important;
+        font-weight: normal !important; /* Lighter font for options */
+        color: #000 !important;
+        line-height: 1.3 !important;
+        min-width: unset !important; /* Reset min-width for inline labels */
+    }
+    .input-group-inline input[type="checkbox"],
+    .input-group-inline input[type="radio"] {
+        width: 3.5mm !important; /* Standard size for checkboxes/radios */
+        height: 3.5mm !important;
+        transform: scale(1) !important; /* Reset scale */
+        margin-right: 0 !important;
+        border: 1px solid #777 !important; /* Make borders visible */
+        background-color: #fff !important;
+        box-shadow: none !important;
+        -webkit-appearance: none !important; /* Hide default browser styling */
+        -moz-appearance: none !important;
+        appearance: none !important;
+        position: relative !important; /* For custom checkmark */
+        flex-shrink: 0; /* Prevent from shrinking */
+    }
+    /* Custom checkmark for printed checkboxes */
+    .input-group-inline input[type="checkbox"]:checked::after {
+        content: '✔' !important;
+        font-size: 2.5mm !important;
+        color: #000 !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        line-height: 1 !important;
+    }
+    /* Custom dot for printed radio buttons */
+    .input-group-inline input[type="radio"]:checked::after {
+        content: '●' !important;
+        font-size: 2.5mm !important;
+        color: #000 !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        line-height: 1 !important;
+    }
+    
+    .input-group-inline textarea {
+        flex-grow: 1;
+        min-width: 80mm !important; /* Ensure enough width for inline textareas */
+    }
+
+
+    /* Specific layout rows (VA, IOP, Refraction, Keratometry, Prism) - Mimicking tables */
+    .va-row, .iop-row, .refraction-row, .keratometry-row, .prism-row {
+        display: flex !important; /* Use flex for consistent row behavior */
+        flex-wrap: wrap; /* Allow items to wrap if space is limited */
+        gap: 5mm !important; /* Consistent gap between items in a row */
+        margin-bottom: 5mm !important;
+        justify-content: flex-start; /* Align items to start */
+        border: 1px solid #f0f0f0; /* Subtle border for these sections */
+        padding: 3mm;
+        background-color: #fdfdfd;
+        page-break-inside: avoid; /* Prevent rows from breaking badly */
+    }
+    .va-item, .iop-item, .od-os-pair {
+        flex: 1 1 calc(50% - 3mm) !important; /* Two columns per row, accounting for gap */
+        margin-right: 0 !important; /* Reset margin */
+        margin-bottom: 0 !important; /* Reset margin */
+        background-color: #ffffff !important; /* White background for individual items */
+        border: 1px solid #f0f0f0 !important; /* Subtle border for each item */
+        padding: 3mm 4mm !important;
+        box-sizing: border-box;
+    }
+    .od-os-pair { /* For nested OD/OS pairs (e.g., Keratometry) */
+        display: flex !important;
+        flex-direction: column; /* Stack fields within OD/OS pair */
+        gap: 1mm !important;
+        padding: 2mm 3mm !important;
+    }
+    .od-os-pair .form-group {
+        margin-bottom: 0 !important;
+        display: flex;
+        flex-wrap: nowrap; /* Keep label and input on one line within pair */
+        align-items: baseline;
+        gap: 1mm 2mm !important;
+        padding: 0 !important;
+    }
+    .od-os-pair .form-group label {
+        min-width: 25mm !important; /* Smaller label width for nested groups */
+        font-size: 8.5pt !important;
+    }
+    .od-os-pair .form-group input, .od-os-pair .form-group select {
+        flex-grow: 1;
+        min-width: 30mm !important;
+        font-size: 8.5pt !important;
+    }
+
+
+    .va-label, .iop-label, .refraction-label {
+        grid-column: auto !important; /* Reset grid column */
+        margin-top: 3mm !important;
+        margin-bottom: 3mm !important;
+        font-size: 10pt !important;
+        font-weight: 700 !important;
+        color: var(--primary-color-dark) !important;
+        padding-bottom: 1mm !important;
+        border-bottom: 1px solid #ccc !important; /* Solid border for sub-headers */
+        width: 100%; /* Take full width */
+    }
+
+    /* Conditional groups in print */
+    .conditional-group {
+        display: block !important; /* Ensure visible in print */
+        margin-top: 4mm !important;
+        padding: 3mm !important;
+        padding-left: 5mm !important;
+        border: 1px dashed #cccccc !important; /* Dashed border for conditional fields */
+        border-radius: 0 !important;
+        background-color: #f9f9f9 !important; /* Light background to distinguish */
+        page-break-inside: avoid;
+    }
+    .conditional-group .form-group {
+        margin-bottom: 2mm !important;
+    }
+    .conditional-group label, .conditional-group input, .conditional-group select, .conditional-group textarea {
+        color: #000 !important;
+        background-color: #fff !important;
+    }
+}
+@media print {
+    .va-section {
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 5mm 5mm !important;
+        border: 1px solid #a0a0a0 !important;
+        page-break-inside: avoid;
+        background-color: #fff !important;
+    }
+
+    .va-section legend {
+        font-size: 12pt !important;
+        font-weight: bold !important;
+        color: var(--primary-color-dark) !important;
+        padding: 2mm 4mm !important;
+        top: -6mm !important;
+        left: 5mm !important;
+        position: absolute !important;
+    }
+
+    .va-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 5mm !important;
+    }
+
+    .va-table th, .va-table td {
+        border: 1px solid #000 !important;
+        padding: 2mm 4mm !important;
+        text-align: center !important;
+        font-size: 10pt !important;
+    }
+
+    .va-table th {
+        background-color: #e9e9e9 !important;
+        font-weight: bold !important;
+    }
+
+    .va-table td {
+        background-color: #fff !important;
+    }
+}

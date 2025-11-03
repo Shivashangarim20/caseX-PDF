@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Myopia Management Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textareas/inputs for CC, HPI, etc.) span full width */
+        .form-group:has(textarea[name="parentalMyopiaHistory"]),
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="myopiaProgressionConcern"]),
+        .form-group:has(textarea[name="hpi"]),
+        .form-group:has(textarea[name="poh"]),
+        .form-group:has(textarea[name="pmh"]),
+        .form-group:has(textarea[name="allergies"]),
+        .form-group:has(textarea[name="medications"]),
+        .form-group:has(input[name="peripheralRefractionOD"]),
+        .form-group:has(input[name="peripheralRefractionOS"]),
+        .form-group:has(textarea[name="orthoKLensParameters"]),
+        .form-group:has(textarea[name="mfclLensParameters"]),
+        .form-group:has(input[name="spectacleLensTypeDetails"]), /* Specific for input within a conditional group */
+        .form-group:has(textarea[name="complianceManagement"]),
+        .form-group:has(textarea[name="sideEffectsManagement"]),
+        .form-group:has(textarea[name="patientEducationProvided"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these fields span all columns */
+        }
+
+        /* Headings for VA, Refraction, Biometry */
+        .va-label, .refraction-label, .keratometry-label {
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA, Refraction, Keratometry) */
+        .va-row, .refraction-row, .keratometry-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item, .refraction-row .form-group {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Specific styling for the OD/OS pair within keratometry */
+        .keratometry-row .od-os-pair {
+            display: flex;
+            flex: 1;
+            gap: 10px;
+            min-width: 280px; /* Ensure pair doesn't get too small */
+            flex-wrap: wrap; /* Allow K1, K2, Axis to wrap */
+        }
+        .keratometry-row .od-os-pair .form-group {
+            flex: 1; /* K1, K2, Axis share space within the pair */
+            min-width: 80px; /* Min width for kera inputs */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 44px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row, .refraction-row, .keratometry-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item, .refraction-row .form-group, .keratometry-row .od-os-pair {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Myopia Management Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="myopiamanagement">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="MM-005-LC">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., Lily Chen" required aria-required="true" autofocus value="Lily Chen">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="2015-08-20">
+                </div>
+                <div class="form-group">
+                    <label for="patientAge">Age</label>
+                    <input type="number" id="patientAge" name="patientAge" min="0" max="120" placeholder="e.g., 9" readonly value="9">
+                </div>
+                <div class="form-group">
+                    <label for="parentalMyopiaHistory">Parental Myopia History</label>
+                    <textarea id="parentalMyopiaHistory" name="parentalMyopiaHistory" rows="2" placeholder="e.g., Mother -4.00D, Father -3.00D.">Mother: -6.00D, Father: -4.50D. Both had high myopia progression in childhood.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="dateOfFirstMyopiaDiagnosis">Date of First Myopia Diagnosis</label>
+                    <input type="date" id="dateOfFirstMyopiaDiagnosis" name="dateOfFirstMyopiaDiagnosis" value="2023-03-01">
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC)</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Glasses prescription getting stronger every year. / Concerned about future eye health due to myopia." required aria-required="true">Myopia progression, glasses getting stronger every 6-8 months. Parents concerned about high myopia risks.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="myopiaProgressionConcern">Myopia Progression Concern</label>
+                    <textarea id="myopiaProgressionConcern" name="myopiaProgressionConcern" rows="3" placeholder="e.g., Reports needing new glasses every 10-12 months. Parents worried about high myopia.">Patient has had a -0.75D to -1.00D increase annually for the last 2 years. Parents are anxious and asking for management options.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="nearWorkHoursPerDay">Near Work Hours/Day (e.g., reading, screens)</label>
+                    <input type="number" id="nearWorkHoursPerDay" name="nearWorkHoursPerDay" min="0" step="0.5" placeholder="e.g., 6" value="6">
+                </div>
+                <div class="form-group">
+                    <label for="outdoorHoursPerDay">Outdoor Hours/Day</label>
+                    <input type="number" id="outdoorHoursPerDay" name="outdoorHoursPerDay" min="0" step="0.5" placeholder="e.g., 1.5" value="1.0">
+                </div>
+                <div class="form-group">
+                    <label for="hpi">History of Present Illness (HPI)</label>
+                    <textarea id="hpi" name="hpi" rows="3" placeholder="Details about observed visual changes, progression rate, previous interventions.">Lily is a 9-year-old female diagnosed with myopia at age 7. Her prescription has progressed from -0.75D OU to -2.50D OU over the last two years, with the latest change being -0.75D in the last 8 months. She spends approximately 6 hours on near work (tablet for school, reading) and 1 hour outdoors daily. No ocular pain, redness, or other visual symptoms. Parents are highly motivated for intervention.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History</legend>
+                <div class="form-group">
+                    <label for="poh">Past Ocular History (POH)</label>
+                    <textarea id="poh" name="poh" rows="2" placeholder="e.g., Previous spectacles, amblyopia management.">Diagnosed with simple myopia at age 7. No amblyopia or strabismus history. No previous myopia management interventions.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pmh">Past Medical History (PMH)</label>
+                    <textarea id="pmh" name="pmh" rows="2" placeholder="e.g., None relevant.">Healthy, no systemic conditions.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="allergies">Allergies</label>
+                    <textarea id="allergies" name="allergies" rows="1" placeholder="e.g., None.">No known allergies.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="medications">Current Medications</label>
+                    <textarea id="medications" name="medications" rows="2" placeholder="e.g., None.">None.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Examination (Myopia Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>BCVA OD (with habitual Rx)</label>
+                        <input type="text" name="vaBestCorrectedHabitualOD" placeholder="e.g., 20/20 (6/6) with -2.00DS" value="20/20 (6/6) with -2.50 -0.25 x 180">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>BCVA OS (with habitual Rx)</label>
+                        <input type="text" name="vaBestCorrectedHabitualOS" placeholder="e.g., 20/20 (6/6) with -1.75DS" value="20/20 (6/6) with -2.25 -0.50 x 005">
+                    </div>
+                </div>
+
+                <div class="refraction-label">Manifest Refraction (Spectacle Rx)</div>
+                <div class="refraction-row">
+                    <div class="form-group">
+                        <label>Manifest Refraction OD (Sphere/Cyl/Axis)</label>
+                        <input type="text" name="manifestRefractionOD" placeholder="e.g., -2.50 -0.50 x 180" value="-2.75 -0.25 x 180">
+                    </div>
+                    <div class="form-group">
+                        <label>Manifest Refraction OS (Sphere/Cyl/Axis)</label>
+                        <input type="text" name="manifestRefractionOS" placeholder="e.g., -2.25 DS" value="-2.50 -0.50 x 005">
+                    </div>
+                </div>
+                <div class="refraction-label">Cycloplegic Refraction</div>
+                <div class="refraction-row">
+                    <div class="form-group">
+                        <label>Cycloplegic Refraction OD</label>
+                        <input type="text" name="cycloplegicRefractionOD" placeholder="e.g., -2.25 -0.25 x 180" value="-2.50 -0.25 x 175">
+                    </div>
+                    <div class="form-group">
+                        <label>Cycloplegic Refraction OS</label>
+                        <input type="text" name="cycloplegicRefractionOS" placeholder="e.g., -2.00 DS" value="-2.25 -0.50 x 005">
+                    </div>
+                </div>
+
+                <div class="va-label">Biometry & Keratometry</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label for="axialLengthOD">Axial Length OD (mm)</label>
+                        <input type="number" id="axialLengthOD" name="axialLengthOD" step="0.01" placeholder="e.g., 24.50" value="24.25">
+                    </div>
+                    <div class="form-group va-item">
+                        <label for="axialLengthOS">Axial Length OS (mm)</label>
+                        <input type="number" id="axialLengthOS" name="axialLengthOS" step="0.01" placeholder="e.g., 24.35" value="24.18">
+                    </div>
+                </div>
+                <div class="keratometry-row">
+                    <div class="od-os-pair">
+                        <div class="form-group">
+                            <label for="k1OD">K1 OD (Diopters)</label>
+                            <input type="text" id="k1OD" name="k1OD" placeholder="e.g., 43.50" value="43.75">
+                        </div>
+                        <div class="form-group">
+                            <label for="k2OD">K2 OD (Diopters)</label>
+                            <input type="text" id="k2OD" name="k2OD" placeholder="e.g., 44.00" value="44.25">
+                        </div>
+                        <div class="form-group">
+                            <label for="axisOD">Axis OD</label>
+                            <input type="number" id="axisOD" name="axisOD" min="1" max="180" placeholder="e.g., 180" value="175">
+                        </div>
+                    </div>
+                    <div class="od-os-pair">
+                        <div class="form-group">
+                            <label for="k1OS">K1 OS (Diopters)</label>
+                            <input type="text" id="k1OS" name="k1OS" placeholder="e.g., 43.75" value="43.80">
+                        </div>
+                        <div class="form-group">
+                            <label for="k2OS">K2 OS (Diopters)</label>
+                            <input type="text" id="k2OS" name="k2OS" placeholder="e.g., 44.25" value="44.30">
+                        </div>
+                        <div class="form-group">
+                            <label for="axisOS">Axis OS</label>
+                            <input type="number" id="axisOS" name="axisOS" min="1" max="180" placeholder="e.g., 175" value="005">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="peripheralRefractionOD">Peripheral Refraction OD (Optional)</label>
+                    <input type="text" id="peripheralRefractionOD" name="peripheralRefractionOD" placeholder="e.g., Myopic shift @ 30 degrees nasal." value="Slight hyperopic shift +0.25D at 30 degrees nasal.">
+                </div>
+                <div class="form-group">
+                    <label for="peripheralRefractionOS">Peripheral Refraction OS (Optional)</label>
+                    <input type="text" id="peripheralRefractionOS" name="peripheralRefractionOS" placeholder="e.g., Hyperopic shift @ 30 degrees temporal." value="Slight hyperopic shift +0.50D at 30 degrees temporal.">
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Management & Treatment</legend>
+                <div class="form-group">
+                    <label for="currentManagementMethod">Current/Proposed Management Method <sup>*</sup></label>
+                    <select id="currentManagementMethod" name="currentManagementMethod" required aria-required="true" 
+                            aria-controls="atropineConcentration_group orthoKLensParameters_group mfclLensParameters_group spectacleLensType_group">
+                        <option value="">Select...</option>
+                        <option value="None">None (Monitor Only)</option>
+                        <option value="Atropine">Atropine Eye Drops</option>
+                        <option value="Orthokeratology">Orthokeratology (Ortho-K)</option>
+                        <option value="Multifocal Soft Contact Lenses" selected>Multifocal Soft Contact Lenses</option>
+                        <option value="DIMS/HAL Spectacles">DIMS/HAL Spectacles</option>
+                        <option value="Single Vision Spectacles">Single Vision Spectacles</option>
+                        <option value="Bifocal Spectacles">Bifocal/Progressive Spectacles</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                </div>
+                <div id="atropineConcentration_group" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="currentManagementMethod">
+                    <div class="form-group">
+                        <label for="atropineConcentration">Atropine Concentration</label>
+                        <input type="text" id="atropineConcentration" name="atropineConcentration" placeholder="e.g., 0.01% QD OU" disabled>
+                    </div>
+                </div>
+                <div id="orthoKLensParameters_group" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="currentManagementMethod">
+                    <div class="form-group">
+                        <label for="orthoKLensParameters">Orthokeratology Lens Parameters</label>
+                        <textarea id="orthoKLensParameters" name="orthoKLensParameters" rows="2" placeholder="e.g., OD: Paragon CRT 8.5/550, OS: Paragon CRT 8.5/550" disabled></textarea>
+                    </div>
+                </div>
+                <div id="mfclLensParameters_group" class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="currentManagementMethod">
+                    <div class="form-group">
+                        <label for="mfclLensParameters">Multifocal Soft CL Parameters</label>
+                        <textarea id="mfclLensParameters" name="mfclLensParameters" rows="2" placeholder="e.g., OD: MiSight -2.00D, OS: MiSight -1.75D">OD: MiSight -2.50D, medium add. OS: MiSight -2.25D, medium add.</textarea>
+                    </div>
+                </div>
+                 <div id="spectacleLensType_group" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="currentManagementMethod">
+                    <div class="form-group">
+                        <label for="spectacleLensTypeDetails">Spectacle Lens Type Details</label>
+                        <input type="text" id="spectacleLensTypeDetails" name="spectacleLensTypeDetails" placeholder="e.g., OD: -2.50D with DIMS. OS: -2.25D with DIMS" disabled>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="complianceManagement">Compliance with Management</label>
+                    <textarea id="complianceManagement" name="complianceManagement" rows="2" placeholder="e.g., Patient/parents report good compliance with drops.">Anticipated good compliance given parental motivation and patient's comfort with handling lenses.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="sideEffectsManagement">Side Effects from Management</label>
+                    <textarea id="sideEffectsManagement" name="sideEffectsManagement" rows="2" placeholder="e.g., Mild photophobia with atropine, managed with sunglasses.">Discussed potential dryness or initial discomfort with contact lenses. Advised on proper hygiene and wearing schedule.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="patientEducationProvided">Patient Education Provided/Reinforced</label>
+                    <textarea id="patientEducationProvided" name="patientEducationProvided" rows="3" placeholder="e.g., Importance of outdoor time, 20-20-20 rule, risks of high myopia.">Reinforced importance of daily outdoor time (aim for 2+ hours), 20-20-20 rule, proper lighting, and ergonomics for near work. Explained risks associated with high myopia (retinal detachment, glaucoma, maculopathy) and how management aims to reduce these risks. Discussed adaptation period for MFCL.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Myopia OU, moderate progression rate.&#10;2. High risk for future high myopia due to parental history.&#10;3. Stable axial length with current management." required aria-required="true">1. Myopia OU (H52.1), moderate progression. (-0.75D/year, +0.07mm AL/year).
+2. High risk for future high myopia due to strong parental history and current progression rate.
+3. Patient and parents highly motivated for active management.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Continue Atropine 0.01% QD OU.&#10;2. Counsel parents on maintaining outdoor time (2+ hours/day).&#10;3. RTC 6 months for repeat refraction, VA, and axial length measurement.&#10;4. Discuss future options if progression continues." required aria-required="true">1. Prescribe MiSight 1-day multifocal soft contact lenses OU with new prescription.
+2. Initiate MiSight treatment: OD: -2.50D, medium add. OS: -2.25D, medium add.
+3. Patient education on lens wear, care, hygiene, and progressive adaptation.
+4. Lifestyle modifications: Reinforce 2+ hours outdoor time daily. Implement 20-20-20 rule for near work. Optimize lighting and ergonomics.
+5. RTC 1 month for contact lens follow-up and adaptation check. Then RTC 3 months for full myopia management follow-up including repeat refraction, axial length, and keratometry.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="prognosis">Prognosis</label>
+                    <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Fair for slowing myopia progression with consistent management.">Good prognosis for slowing myopia progression with consistent use of MiSight lenses and adherence to lifestyle recommendations.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Continue drops as prescribed. Ensure daily outdoor time. Return in 6 months for follow-up.">Wear contact lenses daily as prescribed. Remove before swimming/showering. Practice good hand hygiene. Increase outdoor time to at least 2 hours daily. Use the 20-20-20 rule for near work. Return in 1 month for contact lens check, then 3 months for myopia management check-up.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Lily is a bright and cooperative child. Parents were thoroughly engaged in the discussion about MiSight and committed to ensuring compliance. Scheduled comprehensive contact lens training for next week. Highlighted importance of long-term commitment.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">This case emphasizes the importance of early intervention in myopia management for children with strong family history and rapid progression. A clear explanation of the "why" behind interventions and consistent reinforcement of lifestyle modifications are crucial for parental buy-in and patient compliance. Axial length tracking is essential for objective measurement of treatment efficacy.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="myopiamanagement-case-script.js"></script>
+    <!-- The PDF export handler script for this case -->
+    <script src="myopiamanagement-case-pdf.js"></script> 
+</body>
+</html>

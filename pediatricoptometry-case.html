@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Pediatric Optometry Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textareas/inputs for CC, HPI, etc.) span full width */
+        .form-group:has(textarea[name="developmentalMilestones_details"]),
+        .form-group:has(textarea[name="schoolPerformance"]),
+        .form-group:has(textarea[name="historyOfEyeCare"]),
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="hpi"]),
+        .form-group:has(textarea[name="poh"]),
+        .form-group:has(textarea[name="pmh"]),
+        .form-group:has(textarea[name="allergies"]),
+        .form-group:has(textarea[name="medications"]),
+        .form-group:has(textarea[name="familyOcularHistory"]),
+        .form-group:has(textarea[name="familyMedicalHistory"]),
+        .form-group:has(input[name="hirschbergTest"]),
+        .form-group:has(input[name="brucknerTest"]),
+        .form-group:has(textarea[name="eoms_pediatric"]),
+        .form-group:has(input[name="pupils_pediatric"]),
+        .form-group:has(textarea[name="anteriorSegmentExam_pediatric"]),
+        .form-group:has(textarea[name="posteriorSegmentExam_pediatric"]),
+        .form-group:has(textarea[name="glassesTolerance_details"]),
+        .form-group:has(textarea[name="amblyopiaHistory_details"]),
+        .form-group:has(input[name="patchingHours"]), /* Specific for input within a conditional group */
+        .form-group:has(textarea[name="strabismusHistory_details"]),
+        .form-group:has(textarea[name="surgeryReferralDetails"]), /* Specific for textarea within a conditional group */
+        .form-group:has(textarea[name="patientEducationProvided"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these fields span all columns */
+        }
+
+        /* Headings for VA */
+        .va-label { /* Re-using va-label for consistency in general headings */
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA) */
+        .va-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Pediatric Optometry Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="pediatricoptometry">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="PED-001-LS">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., Leo Smith" required aria-required="true" autofocus value="Leo Smith">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="2018-03-15">
+                </div>
+                <div class="form-group">
+                    <label for="patientAge">Age</label>
+                    <input type="number" id="patientAge" name="patientAge" min="0" max="120" placeholder="e.g., 5" readonly value="5">
+                </div>
+                <div class="form-group">
+                    <label for="guardianName">Guardian Name <sup>*</sup></label>
+                    <input type="text" id="guardianName" name="guardianName" placeholder="e.g., Maria Smith" required aria-required="true" value="Maria Smith">
+                </div>
+                <div class="form-group">
+                    <label for="guardianContact">Guardian Contact Number</label>
+                    <input type="tel" id="guardianContact" name="guardianContact" placeholder="e.g., (555) 987-6543" value="(555) 987-6543">
+                </div>
+                <div class="form-group">
+                    <label for="developmentalMilestonesStatus">Developmental Milestones Status</label>
+                    <select id="developmentalMilestonesStatus" name="developmentalMilestonesStatus" aria-controls="developmentalMilestones_details_group">
+                        <option value="">Select...</option>
+                        <option value="Normal" selected>Normal for age</option>
+                        <option value="Delayed">Delayed (describe below)</option>
+                    </select>
+                    <textarea id="developmentalMilestones_details_group" name="developmentalMilestones_details" rows="2" placeholder="e.g., Delayed walking, speech delays." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="schoolPerformance">School Performance / Current Grade</label>
+                    <textarea id="schoolPerformance" name="schoolPerformance" rows="2" placeholder="e.g., Kindergarten, excelling in math, difficulty with reading.">Pre-Kindergarten, developing normally.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="historyOfEyeCare">History of Eye Care (e.g., previous patching, glasses)</label>
+                    <textarea id="historyOfEyeCare" name="historyOfEyeCare" rows="2" placeholder="e.g., Wore glasses for 1 year, had patching for 6 months OD.">First eye exam today. No previous concerns.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC)</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Child squints frequently. / Teacher reports difficulty seeing the board." required aria-required="true">Parents concerned about right eye turning in intermittently, especially when tired.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hpi">History of Present Illness (HPI)</label>
+                    <textarea id="hpi" name="hpi" rows="4" placeholder="Onset, duration, severity of symptoms, observed visual behaviors, parental concerns.">Parents first noticed the right eye turning in intermittently about 3 months ago. It seems to happen mostly when Leo is tired or focusing on something close, like drawing or looking at an iPad. They also report he sometimes closes one eye in bright light. No apparent discomfort, redness, or discharge. He does not complain of double vision. No known trauma or recent illness.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History</legend>
+                <div class="form-group">
+                    <label for="poh">Past Ocular History (POH)</label>
+                    <textarea id="poh" name="poh" rows="2" placeholder="e.g., History of allergic conjunctivitis.">None.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pmh">Past Medical History (PMH)</label>
+                    <textarea id="pmh" name="pmh" rows="2" placeholder="e.g., Asthma, frequent ear infections.">Healthy, no chronic conditions.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="allergies">Allergies</label>
+                    <textarea id="allergies" name="allergies" rows="1" placeholder="e.g., Seasonal pollen.">None known.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="medications">Current Medications</label>
+                    <textarea id="medications" name="medications" rows="2" placeholder="e.g., Allergy drops.">None.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="familyOcularHistory">Family Ocular History (FOH)</label>
+                    <textarea id="familyOcularHistory" name="familyOcularHistory" rows="2" placeholder="e.g., Mother has high myopia, Father has strabismus.">Father had childhood strabismus surgery. Paternal aunt has amblyopia.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="familyMedicalHistory">Family Medical History (FMH)</label>
+                    <textarea id="familyMedicalHistory" name="familyMedicalHistory" rows="2" placeholder="e.g., Diabetes, autoimmune disorders.">No significant family medical history.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Examination (Pediatric Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="form-group">
+                    <label for="ageAppropriateVA">Age-Appropriate VA Chart Used</label>
+                    <select id="ageAppropriateVA" name="ageAppropriateVA">
+                        <option value="">Select...</option>
+                        <option value="OKN">OKN (Optokinetic Nystagmus)</option>
+                        <option value="Teller">Teller Acuity Cards</option>
+                        <option value="LeaSymbols" selected>LEA Symbols</option>
+                        <option value="HOTV">HOTV Matching</option>
+                        <option value="Snellen">Snellen</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>VA OD</label>
+                        <input type="text" name="vaOD" placeholder="e.g., 20/40 (6/12)" value="20/40">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>VA OS</label>
+                        <input type="text" name="vaOS" placeholder="e.g., 20/50 (6/15)" value="20/30">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>VA OU</label>
+                        <input type="text" name="vaOU" placeholder="e.g., 20/30 (6/9)" value="20/30">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hirschbergTest">Hirschberg Test</label>
+                    <input type="text" id="hirschbergTest" name="hirschbergTest" placeholder="e.g., Orthophoric, 1mm nasal shift OD" value="1mm nasal shift OD">
+                </div>
+                <div class="form-group">
+                    <label for="brucknerTest">Brückner Test (Red Reflex)</label>
+                    <input type="text" id="brucknerTest" name="brucknerTest" placeholder="e.g., Symmetric, bright OU. / Asymmetric OD." value="Asymmetric OD (brighter reflex)">
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>Cover Test (Distance)</label>
+                        <input type="text" name="coverTestDistance" placeholder="e.g., Ortho, 2^ XP" value="20^ XT (Intermittent)">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>Cover Test (Near)</label>
+                        <input type="text" name="coverTestNear" placeholder="e.g., 4^ XP" value="25^ XT (Intermittent)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="eoms_pediatric">Extraocular Motility (EOMs) - Pediatric</label>
+                    <textarea id="eoms_pediatric" name="eoms_pediatric" rows="2" placeholder="e.g., Full and smooth OU. / Hypometric saccades OD.">Full and smooth OU. Good tracking.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cycloplegicRefractionOD">Cycloplegic Refraction OD <sup>*</sup></label>
+                    <input type="text" id="cycloplegicRefractionOD" name="cycloplegicRefractionOD" placeholder="e.g., +1.00 -0.50 x 180" required aria-required="true" value="+2.50 DS">
+                </div>
+                <div class="form-group">
+                    <label for="cycloplegicRefractionOS">Cycloplegic Refraction OS <sup>*</sup></label>
+                    <input type="text" id="cycloplegicRefractionOS" name="cycloplegicRefractionOS" placeholder="e.g., +1.25 DS" required aria-required="true" value="+0.75 DS">
+                </div>
+                <div class="form-group">
+                    <label for="stereoacuity_pediatric">Stereoacuity</label>
+                    <input type="text" id="stereoacuity_pediatric" name="stereoacuity_pediatric" placeholder="e.g., 40 seconds of arc (Randot). / Absent (Frisby)." value="400 seconds of arc (Randot)">
+                </div>
+                <div class="form-group">
+                    <label for="pupils_pediatric">Pupils</label>
+                    <input type="text" id="pupils_pediatric" name="pupils_pediatric" placeholder="e.g., PERRLA." value="PERRLA">
+                </div>
+                <div class="form-group">
+                    <label for="anteriorSegmentExam_pediatric">Anterior Segment Exam (Pediatric Focus)</label>
+                    <textarea id="anteriorSegmentExam_pediatric" name="anteriorSegmentExam_pediatric" rows="3" placeholder="e.g., Clear cornea, quiet AC. No developmental anomalies. / Iris coloboma OD.">Clear cornea, quiet AC. Lids and lashes WNL.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="posteriorSegmentExam_pediatric">Posterior Segment Exam (DFE - Pediatric Focus)</label>
+                    <textarea id="posteriorSegmentExam_pediatric" name="posteriorSegmentExam_pediatric" rows="3" placeholder="e.g., Optic discs C/D 0.2 OU, macula WNL. No signs of ROP, retinoblastoma. / Optic nerve hypoplasia OD.">Optic discs C/D 0.2 OU, macula WNL. Vessels WNL. No retinal abnormalities.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Treatment & Management</legend>
+                <div class="form-group">
+                    <label>Spectacles/Contact Lenses Prescribed?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="prescriptionIssuedSpectacles" name="prescriptionIssued" value="Spectacles" checked aria-controls="prescriptionIssued_group">
+                        <label for="prescriptionIssuedSpectacles">Spectacles</label>
+                        <input type="radio" id="prescriptionIssuedContactLenses" name="prescriptionIssued" value="Contact Lenses" aria-controls="prescriptionIssued_group">
+                        <label for="prescriptionIssuedContactLenses">Contact Lenses</label>
+                        <input type="radio" id="prescriptionIssuedNone" name="prescriptionIssued" value="None" aria-controls="prescriptionIssued_group">
+                        <label for="prescriptionIssuedNone">None</label>
+                    </div>
+                </div>
+                <div class="form-group conditional-group" id="prescriptionIssued_group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">
+                    <label for="glassesToleranceStatus">Glasses Tolerance/Adaptation</label>
+                    <select id="glassesToleranceStatus" name="glassesToleranceStatus" aria-controls="glassesTolerance_details">
+                        <option value="">Select...</option>
+                        <option value="Excellent" selected>Excellent</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair (describe below)</option>
+                        <option value="Poor">Poor (describe below)</option>
+                    </select>
+                    <textarea id="glassesTolerance_details" name="glassesTolerance_details" rows="2" placeholder="e.g., Patient resists wearing glasses, constantly removing them." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Amblyopia History/Management?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="amblyopiaHistoryYes" name="amblyopiaHistory" value="Yes" checked aria-controls="amblyopiaHistory_details_group">
+                        <label for="amblyopiaHistoryYes">Yes</label>
+                        <input type="radio" id="amblyopiaHistoryNo" name="amblyopiaHistory" value="No" aria-controls="amblyopiaHistory_details_group">
+                        <label for="amblyopiaHistoryNo">No</label>
+                    </div>
+                    <div id="amblyopiaHistory_details_group" class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">
+                         <textarea id="amblyopiaHistory_details" name="amblyopiaHistory_details" rows="2" placeholder="e.g., Patching 2 hours/day OD for 6 months. / Atropine 1% QD OS initiated.">New diagnosis of amblyopia OD. Initiating treatment today.</textarea>
+                         <div class="form-group">
+                            <label for="amblyopiaTreatment">Amblyopia Treatment (if current)</label>
+                            <select id="amblyopiaTreatment" name="amblyopiaTreatment" aria-controls="patchingHours">
+                                <option value="">Select...</option>
+                                <option value="Patching" selected>Patching</option>
+                                <option value="Atropine">Atropine</option>
+                                <option value="Vision Therapy">Vision Therapy</option>
+                                <option value="Optical Correction">Optical Correction Only</option>
+                                <option value="None">None</option>
+                            </select>
+                            <input type="text" id="patchingHours" name="patchingHours" placeholder="e.g., 2 hours/day" class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" value="2 hours/day OS (sound eye)">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Strabismus History/Management?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="strabismusHistoryYes" name="strabismusHistory" value="Yes" checked aria-controls="strabismusHistory_details_group">
+                        <label for="strabismusHistoryYes">Yes</label>
+                        <input type="radio" id="strabismusHistoryNo" name="strabismusHistory" value="No" aria-controls="strabismusHistory_details_group">
+                        <label for="strabismusHistoryNo">No</label>
+                    </div>
+                    <div id="strabismusHistory_details_group" class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;">
+                        <textarea id="strabismusHistory_details" name="strabismusHistory_details" rows="2" placeholder="e.g., History of ET surgical correction. / Intermittent XT noted since age 3.">Intermittent XT (20-25^). Monitor for decompensation. Father had surgery for strabismus.</textarea>
+                        <div class="form-group">
+                            <label for="strabismusManagement">Strabismus Management (if current)</label>
+                            <select id="strabismusManagement" name="strabismusManagement" aria-controls="surgeryReferralDetails">
+                                <option value="">Select...</option>
+                                <option value="Glasses" selected>Glasses/Prism Only</option>
+                                <option value="Vision Therapy">Vision Therapy</option>
+                                <option value="Surgery Referral">Surgery Referral (describe below)</option>
+                                <option value="Monitor">Monitor Only</option>
+                            </select>
+                            <textarea id="surgeryReferralDetails" name="surgeryReferralDetails" rows="2" placeholder="e.g., Referral to Pediatric Ophthalmology for RMR recession OU." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" disabled></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="patientEducationProvided">Patient Education Provided/Reinforced</label>
+                    <textarea id="patientEducationProvided" name="patientEducationProvided" rows="3" placeholder="e.g., Importance of spectacle wear, patching compliance, signs of worsening vision.">Importance of consistent spectacle wear and patching compliance. Explained amblyopia and strabismus to parents. Discussed follow-up schedule and signs of worsening.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Hyperopic anisometropic amblyopia OS.&#10;2. Intermittent exotropia, well-controlled with spectacles.&#10;3. Visually adapted to new glasses." required aria-required="true">1. Hyperopic amblyopia OD (H53.031).
+2. Intermittent exotropia (H50.51), decompensating at near.
+3. Hyperopia OD, emmetropia OS.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Prescribe new spectacles: OD: +1.00DS, OS: +2.50DS.&#10;2. Continue patching OS 2 hours/day.&#10;3. Initiate home vision therapy for amblyopia.&#10;4. RTC 4 weeks for amblyopia progress check and spectacle adaptation." required aria-required="true">1. Prescribe new spectacles: OD: +2.50DS, OS: plano. Ensure full-time wear.
+2. Initiate patching OD (amblyopic eye) 2 hours/day (direct patching, as OS is sound eye).
+3. Monitor XT; consider prism or VT after amblyopia treatment.
+4. Patient education: patching technique, wear schedule.
+5. RTC 4 weeks for amblyopia progress check and spectacle adaptation.
+6. RTC 3 months for comprehensive eye exam.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="prognosis">Prognosis</label>
+                    <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Good for improving amblyopia with consistent therapy.">Good for amblyopia improvement with consistent patching and spectacle wear, given young age. Strabismus may require further intervention.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Ensure child wears glasses full-time. Patch daily. Return in 4 weeks for follow-up.">Ensure Leo wears glasses full-time. Patch his right eye (OD) for 2 hours daily. Return in 4 weeks for an amblyopia progress check and to assess spectacle adaptation. Contact if any concerns.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Parents very receptive. Discussed potential need for strabismus surgery in future if XT decompensates or cosmetic concern. Monitor closely for compliance.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">This is a classic case of anisometropic amblyopia with intermittent exotropia. The key is early and consistent intervention. The family history of strabismus highlights the genetic component. Proper patient/parent education is paramount for compliance and success.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="pediatricoptometry-case-script.js"></script>
+    <!-- The PDF export handler script for this case -->
+    <script src="pediatricoptometry-case-pdf.js"></script> 
+</body>
+</html>

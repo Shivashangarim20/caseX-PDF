@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Follow-up Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            /* === MODIFICATION START === */
+            /* Remove left margin and use auto margins with display: table to center the legend box */
+            /* margin-left: 10px; */ /* Removed */
+            display: table; /* Makes the legend element shrink-to-fit its content */
+            margin: 0 auto; /* Centers the block-level element (now with a defined width) */
+            /* === MODIFICATION END === */
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textarea for HPI, POH, etc.) span full width */
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="complianceStatus"]),
+        .form-group:has(textarea[name="newSymptoms"]),
+        .form-group:has(textarea[name="treatmentSideEffects_details"]),
+        .form-group:has(textarea[name="changesInMedicalHistory"]),
+        .form-group:has(textarea[name="changesInSocialHistory"]),
+        .form-group:has(textarea[name="pupilsFollowup_details"]),
+        .form-group:has(textarea[name="eomsFollowup_details"]),
+        .form-group:has(textarea[name="slitLampFollowup"]),
+        .form-group:has(textarea[name="posteriorSegmentFollowup"]),
+        .form-group:has(textarea[name="octFollowup"]),
+        .form-group:has(textarea[name="visualFieldFollowup"]),
+        .form-group:has(textarea[name="otherInvestigationsFollowup"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="patientEducationProvided"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these textareas span all columns */
+        }
+
+        /* Headings for VA, IOP */
+        .va-label, .iop-label {
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA, IOP) */
+        .va-row, .iop-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item, .iop-item {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row, .iop-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item, .iop-item {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Follow-up Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="followup">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="FU-001-JS">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., John Doe" required aria-required="true" autofocus value="John Smith">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfVisit">Date of Visit <sup>*</sup></label>
+                    <input type="date" id="dateOfVisit" name="dateOfVisit" required aria-required="true" value="2024-06-19">
+                </div>
+                <div class="form-group">
+                    <label for="previousVisitDate">Previous Visit Date <sup>*</sup></label>
+                    <input type="date" id="previousVisitDate" name="previousVisitDate" required aria-required="true" value="2024-03-19">
+                </div>
+                <div class="form-group">
+                    <label for="referencingPreviousCaseId">Referencing Previous Case ID (Optional)</label>
+                    <input type="text" id="referencingPreviousCaseId" name="referencingPreviousCaseId" placeholder="e.g., P00123-20230115" value="P00123-20240319">
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC) / Status Update</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint / Status Since Last Visit <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="3" placeholder="e.g., Patient reports symptoms of dry eye are much improved with artificial tears, vision remains stable. Reports worsening blurred vision OD." required aria-required="true">Patient reports symptoms of dry eye are much improved with artificial tears, vision remains stable. Denies new flashes/floaters or pain.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="complianceStatus">Compliance with Treatment</label>
+                    <textarea id="complianceStatus" name="complianceStatus" rows="2" placeholder="e.g., Patient compliant with eye drops and spectacle wear. / Patient reports difficulty remembering drops.">Patient reports excellent compliance with artificial tears QID and punctual plug hygiene.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="newSymptoms">Any New Ocular Symptoms?</label>
+                    <textarea id="newSymptoms" name="newSymptoms" rows="2" placeholder="e.g., Denies new flashes/floaters. Reports occasional headache.">Denies any new ocular symptoms. Occasional mild headache, consistent with previous reports.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="conditionStatus">Condition Status (Overall)</label>
+                    <select id="conditionStatus" name="conditionStatus">
+                        <option value="">Select...</option>
+                        <option value="Improved" selected>Improved</option>
+                        <option value="Stable">Stable</option>
+                        <option value="Worsened">Worsened</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="New Problem">New Problem</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Any Adverse Effects from Current Treatment?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="sideEffectsYes" name="treatmentSideEffects" value="Yes" aria-controls="treatmentSideEffects_details">
+                        <label for="sideEffectsYes">Yes</label>
+                        <input type="radio" id="sideEffectsNo" name="treatmentSideEffects" value="No" checked aria-controls="treatmentSideEffects_details">
+                        <label for="sideEffectsNo">No</label>
+                    </div>
+                    <textarea id="treatmentSideEffects_details" name="treatmentSideEffects_details" rows="2" placeholder="Describe adverse effects." class="conditional-group" aria-expanded="false" aria-describedby="sideEffectsYes sideEffectsNo"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History Update</legend>
+                <div class="form-group">
+                    <label for="changesInMedicalHistory">Changes in POH/PMH/Medications?</label>
+                    <textarea id="changesInMedicalHistory" name="changesInMedicalHistory" rows="3" placeholder="e.g., No new medical diagnoses or medications since last visit. / Started new BP medication 2 months ago.">No new medical diagnoses, surgeries, or changes to systemic medications since last visit. Continues glaucoma drops (Latanoprost OU QHS).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="changesInSocialHistory">Changes in Social History?</label>
+                    <textarea id="changesInSocialHistory" name="changesInSocialHistory" rows="2" placeholder="e.g., Started a new job with increased computer use.">No significant changes in social history or work environment.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Current Spectacles Adequate?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="spectaclesAdequateYes" name="spectaclesAdequate" value="Yes" checked>
+                        <label for="spectaclesAdequateYes">Yes</label>
+                        <input type="radio" id="spectaclesAdequateNo" name="spectaclesAdequate" value="No">
+                        <label for="spectaclesAdequateNo">No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Current Contact Lenses Adequate?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="contactLensesAdequateYes" name="contactLensesAdequate" value="Yes" checked>
+                        <label for="contactLensesAdequateYes">Yes</label>
+                        <input type="radio" id="contactLensesAdequateNo" name="contactLensesAdequate" value="No">
+                        <label for="contactLensesAdequateNo">No</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Examination (Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>UCVA OD</label>
+                        <input type="text" name="vaUncorrectedOD" placeholder="e.g., 20/40 (6/12)" value="20/40 (6/12)">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>UCVA OS</label>
+                        <input type="text" name="vaUncorrectedOS" placeholder="e.g., 20/50 (6/15)" value="20/40 (6/12)">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>BCVA OD (with current Rx/PH)</label>
+                        <input type="text" name="vaBestCorrectedOD" placeholder="e.g., 20/20 (6/6) with -2.00DS" value="20/20 (6/6)">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>BCVA OS (with current Rx/PH)</label>
+                        <input type="text" name="vaBestCorrectedOS" placeholder="e.g., 20/25 (6/7.5) PH" value="20/20 (6/6)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pupilsFollowup">Pupils</label>
+                    <select id="pupilsFollowup" name="pupilsFollowup" aria-controls="pupilsFollowup_details">
+                        <option value="PERRLA" selected>PERRLA</option>
+                        <option value="APD OD">APD OD</option>
+                        <option value="APD OS">APD OS</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="pupilsFollowup_details" name="pupilsFollowup_details" rows="1" placeholder="Describe pupils if 'Other' selected or for additional details." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="pupilsFollowup"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="eomsFollowup">Extraocular Motility (EOMs)</label>
+                    <select id="eomsFollowup" name="eomsFollowup" aria-controls="eomsFollowup_details">
+                        <option value="Full and Smooth" selected>Full and Smooth</option>
+                        <option value="Restricted">Restricted</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="eomsFollowup_details" name="eomsFollowup_details" rows="1" placeholder="Describe EOMs if 'Other' selected or for additional details." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="eomsFollowup"></textarea>
+                </div>
+
+                <div class="iop-label">Intraocular Pressure (IOP)</div>
+                <div class="iop-row">
+                    <div class="form-group iop-item">
+                        <label>IOP OD (mmHg)</label>
+                        <input type="text" name="iopOD" placeholder="e.g., 15 @ 10:30 AM" value="15 @ 10:45 AM">
+                    </div>
+                    <div class="form-group iop-item">
+                        <label>IOP OS (mmHg)</label>
+                        <input type="text" name="iopOS" placeholder="e.g., 16 @ 10:30 AM" value="16 @ 10:45 AM">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="iopMethodFollowup">Method</label>
+                    <select id="iopMethodFollowup" name="iopMethodFollowup">
+                        <option value="">Select...</option>
+                        <option value="NCT">NCT</option>
+                        <option value="Goldmann" selected>Goldmann Applanation Tonometry</option>
+                        <option value="Icare">Icare</option>
+                        <option value="Tono-Pen">Tono-Pen</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="iopTarget">Target IOP (mmHg)</label>
+                    <input type="number" id="iopTarget" name="iopTarget" placeholder="e.g., 14" value="14">
+                </div>
+                <div class="form-group">
+                    <label>IOP Target Met? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="iopTargetMetYes" name="iopTargetMet" value="Yes" required aria-required="true" checked>
+                        <label for="iopTargetMetYes">Yes</label>
+                        <input type="radio" id="iopTargetMetNo" name="iopTargetMet" value="No" required aria-required="true">
+                        <label for="iopTargetMetNo">No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Slit Lamp Exam (Relevant Findings Only)</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="slitLampFollowup_wnl" name="slitLampFollowup_status" value="WNL" checked aria-controls="slitLampFollowup">
+                        <label for="slitLampFollowup_wnl">WNL (or stable)</label>
+                        <input type="radio" id="slitLampFollowup_notwnl" name="slitLampFollowup_status" value="Not WNL" aria-controls="slitLampFollowup">
+                        <label for="slitLampFollowup_notwnl">Not WNL (describe)</label>
+                    </div>
+                    <textarea id="slitLampFollowup" name="slitLampFollowup" rows="3" placeholder="e.g., Conjunctiva: Less injection OU. Cornea: No staining. Lens: NSC unchanged." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="slitLampFollowup_wnl slitLampFollowup_notwnl"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Posterior Segment Exam (Relevant Findings Only)</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="posteriorSegmentFollowup_wnl" name="posteriorSegmentFollowup_status" value="WNL" checked aria-controls="posteriorSegmentFollowup">
+                        <label for="posteriorSegmentFollowup_wnl">WNL (or stable)</label>
+                        <input type="radio" id="posteriorSegmentFollowup_notwnl" name="posteriorSegmentFollowup_status" value="Not WNL" aria-controls="posteriorSegmentFollowup">
+                        <label for="posteriorSegmentFollowup_notwnl">Not WNL (describe)</label>
+                    </div>
+                    <textarea id="posteriorSegmentFollowup" name="posteriorSegmentFollowup" rows="3" placeholder="e.g., Optic Disc: CD ratio stable OD 0.4, OS 0.4. Macula: No new drusen." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="posteriorSegmentFollowup_wnl posteriorSegmentFollowup_notwnl"></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Investigations</legend>
+                <div class="form-group">
+                    <label for="octFollowup">OCT Findings (if repeated)</label>
+                    <textarea id="octFollowup" name="octFollowup" rows="2" placeholder="e.g., RNFL OCT OU: Stable compared to previous.">RNFL OCT OU: Stable compared to 3-month baseline. No new areas of thinning. Macular OCT: No significant changes, foveal contour maintained.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="octRnflChange">OCT RNFL/GCC Thickness Change</label>
+                    <select id="octRnflChange" name="octRnflChange">
+                        <option value="Stable" selected>Stable</option>
+                        <option value="Thinning">Thinning</option>
+                        <option value="Thickening">Thickening</option>
+                        <option value="N/A">N/A</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="visualFieldFollowup">Visual Field Findings (if repeated)</label>
+                    <textarea id="visualFieldFollowup" name="visualFieldFollowup" rows="2" placeholder="e.g., Humphrey 24-2: No significant change.">Humphrey 24-2 OU: Stable compared to previous, no progression of existing arcuate defect OS. Reliability indices good.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="visualFieldMdChange">Visual Field MD/PSD Change</label>
+                    <input type="text" id="visualFieldMdChange" name="visualFieldMdChange" placeholder="e.g., MD -0.5 dB stable." value="MD OD -1.2 dB (stable), MD OS -3.5 dB (stable)">
+                </div>
+                <div class="form-group">
+                    <label for="macularEdemaStatus">Macular Edema Status</label>
+                    <select id="macularEdemaStatus" name="macularEdemaStatus">
+                        <option value="Resolved">Resolved</option>
+                        <option value="Improving">Improving</option>
+                        <option value="Stable" selected>Stable</option>
+                        <option value="Worsening">Worsening</option>
+                        <option value="New">New</option>
+                        <option value="N/A">N/A</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="otherInvestigationsFollowup">Other Investigations (if any)</label>
+                    <textarea id="otherInvestigationsFollowup" name="otherInvestigationsFollowup" rows="2">None performed today.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses (Current Status) <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Primary Open Angle Glaucoma OU: IOPs stable, fields stable, OCT stable.&#10;2. Dry Eye Syndrome OU: Improved with treatment." required aria-required="true">1. Primary Open Angle Glaucoma OU (H40.113): IOPs stable and at target, visual fields stable, OCT RNFL/GCC stable.
+2. Moderate Dry Eye Syndrome OU (H16.223): Significantly improved with current management (artificial tears + punctual plugs).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan / Adjustments <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Continue current management for glaucoma.&#10;2. Continue artificial tears QID for dry eye.&#10;3. RTC 6 months for repeat IOP, VF, and OCT.&#10;4. Patient education reinforcement on compliance." required aria-required="true">1. Continue current management for Primary Open Angle Glaucoma OU: Latanoprost OU QHS. IOPs are at target, fields and OCT are stable.
+2. Continue current management for Dry Eye Syndrome OU: Artificial tears QID and punctual plug hygiene. Symptoms are well-controlled.
+3. RTC 6 months for repeat comprehensive ocular exam, including IOP, Visual Fields, and OCT RNFL/GCC.
+4. Reinforce patient education on compliance with glaucoma drops and continued monitoring for changes in dry eye symptoms.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="patientEducationProvided">Patient Education Provided/Reinforced</label>
+                    <textarea id="patientEducationProvided" name="patientEducationProvided" rows="2" placeholder="e.g., Compliance, symptom monitoring, warning signs for RD.">Reinforced importance of 100% compliance with glaucoma medication. Discussed importance of regular follow-up for glaucoma progression detection. Reviewed dry eye management techniques.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="prognosis">Prognosis</label>
+                    <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Stable with good compliance.">Good prognosis for both glaucoma and dry eye syndrome with continued good compliance to treatment and regular monitoring.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Return in 6 months for follow-up exam, or sooner if any new symptoms or worsening vision.">Return in 6 months (on [Date + 6 months]) for follow-up comprehensive eye examination, including IOP, Visual Fields, and OCT. Contact the office sooner if any new symptoms, worsening vision, or sudden changes are experienced.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Patient is engaged and cooperative with treatment. Glaucoma appears well-controlled at this stage. Dry eye management effective. Will continue monitoring closely for any subtle changes.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">This follow-up case highlights successful chronic disease management. Emphasized systematic comparison of current findings to baseline and previous visits (IOP, VF, OCT). Confirmed patient understanding of lifelong management for glaucoma and continued management for chronic dry eye.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="followup-case-script.js"></script>
+    <!-- The PDF export handler script for general case -->
+    <script src="followup-case-pdf.js"></script> 
+</body>
+</html>

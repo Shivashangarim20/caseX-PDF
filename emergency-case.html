@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Emergency Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            /* max-width: 1200px;  -- Removed/Modified for full desktop size */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textarea for HPI, POH, etc.) span full width */
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="traumaDetails"]),
+        .form-group:has(textarea[name="hpi"]),
+        .form-group:has(textarea[name="poh"]),
+        .form-group:has(textarea[name="pmh"]),
+        .form-group:has(textarea[name="allergies"]),
+        .form-group:has(textarea[name="currentMedications"]),
+        .form-group:has(textarea[name="externalExamOD"]),
+        .form-group:has(textarea[name="externalExamOS"]),
+        .form-group:has(textarea[name="pupilsEmergency_details"]),
+        .form-group:has(textarea[name="eomsEmergency_details"]),
+        .form-group:has(textarea[name="slitLampEmergency"]),
+        .form-group:has(textarea[name="cornealFindingOD_details"]),
+        .form-group:has(textarea[name="cornealFindingOS_details"]),
+        .form-group:has(textarea[name="posteriorSegmentEmergency"]),
+        .form-group:has(textarea[name="fluoresceinStaining"]),
+        .form-group:has(textarea[name="imagingOrdered"]),
+        .form-group:has(textarea[name="otherEmergencyTests"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="referralDetails"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these textareas span all columns */
+        }
+
+        /* Headings for VA, IOP */
+        .va-label, .iop-label {
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA, IOP) */
+        .va-row, .iop-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item, .iop-item {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"], /* Added for time input */
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row, .iop-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item, .iop-item {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Emergency Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="emergency">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="EM-012-FG">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., John Doe" required aria-required="true" autofocus value="Frank Green">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="1978-03-25">
+                </div>
+                <div class="form-group">
+                    <label for="contactNumber">Contact Number <sup>*</sup></label>
+                    <input type="tel" id="contactNumber" name="contactNumber" placeholder="e.g., (555) 123-4567" required aria-required="true" value="(555) 987-6543">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfOnset">Date of Onset of Symptoms <sup>*</sup></label>
+                    <input type="date" id="dateOfOnset" name="dateOfOnset" required aria-required="true" value="2024-06-19"> <!-- Today's date -->
+                </div>
+                <div class="form-group">
+                    <label for="timeOfPresentation">Time of Presentation <sup>*</sup></label>
+                    <input type="time" id="timeOfPresentation" name="timeOfPresentation" required aria-required="true" value="14:30">
+                </div>
+                 <div class="form-group">
+                    <label for="emergencyContactName">Emergency Contact Name</label>
+                    <input type="text" id="emergencyContactName" name="emergencyContactName" value="Alice Green">
+                </div>
+                <div class="form-group">
+                    <label for="emergencyContactRelationship">Emergency Contact Relationship</label>
+                    <input type="text" id="emergencyContactRelationship" name="emergencyContactRelationship" value="Wife">
+                </div>
+                <div class="form-group">
+                    <label for="emergencyContactNumber">Emergency Contact Number</label>
+                    <input type="tel" id="emergencyContactNumber" name="emergencyContactNumber" value="(555) 987-1234">
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC) - Emergency</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Sudden onset of severe pain and redness OD since 2 hours ago." required aria-required="true">Sudden onset of severe sharp pain, redness, and foreign body sensation in OD since 3 hours ago.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="painScale">Pain Scale (0-10)</label>
+                    <input type="number" id="painScale" name="painScale" min="0" max="10" placeholder="e.g., 8" value="7">
+                </div>
+                 <div class="form-group">
+                    <label for="natureOfInjuryOnset">Nature of Injury/Onset <sup>*</sup></label>
+                    <select id="natureOfInjuryOnset" name="natureOfInjuryOnset" required aria-required="true" aria-controls="natureOfInjuryOnset_other">
+                        <option value="">Select...</option>
+                        <option value="Trauma (Blunt)">Trauma (Blunt)</option>
+                        <option value="Trauma (Penetrating)">Trauma (Penetrating)</option>
+                        <option value="Chemical Exposure">Chemical Exposure</option>
+                        <option value="Sudden Vision Loss">Sudden Vision Loss</option>
+                        <option value="Red Eye/Pain" selected>Red Eye/Pain</option>
+                        <option value="Flashes/Floaters">Flashes/Floaters</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <input type="text" id="natureOfInjuryOnset_other" name="natureOfInjuryOnset_other" placeholder="Specify other nature of injury/onset" class="conditional-group" aria-expanded="false" aria-describedby="natureOfInjuryOnset">
+                </div>
+                <div class="form-group">
+                    <label for="traumaDetails">Trauma Details (if applicable)</label>
+                    <textarea id="traumaDetails" name="traumaDetails" rows="3" placeholder="e.g., Metal foreign body to OD while grinding metal, not wearing safety glasses.">Patient was welding without safety glasses. Felt a "ping" in the right eye, followed by immediate pain and watering.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="hpi">History of Present Illness (HPI)</label>
+                    <textarea id="hpi" name="hpi" rows="4" placeholder="Mechanism of injury, associated symptoms, progression, self-treatment.">Patient reports working on a metal project using a welder, confirms no eye protection was worn. Approximately 3 hours ago, felt sudden foreign body sensation, sharp pain, tearing, and mild photophobia in the right eye (OD). Attempted to rinse eye with tap water but symptoms persisted and worsened. Denies significant vision loss, flashes, floaters, or diplopia.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Associated Symptoms (Check all that apply)</label>
+                    <div class="input-group-inline">
+                        <input type="checkbox" id="em_nauseaVomiting" name="em_nauseaVomiting" value="Nausea/Vomiting"><label for="em_nauseaVomiting">Nausea/Vomiting</label>
+                        <input type="checkbox" id="em_headache" name="em_headache" value="Headache"><label for="em_headache">Headache</label>
+                        <input type="checkbox" id="em_diplopia" name="em_diplopia" value="Diplopia"><label for="em_diplopia">Diplopia</label>
+                        <input type="checkbox" id="em_photophobia" name="em_photophobia" value="Photophobia" checked><label for="em_photophobia">Photophobia</label>
+                        <input type="checkbox" id="em_discharge" name="em_discharge" value="Discharge"><label for="em_discharge">Discharge</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History</legend>
+                <div class="form-group">
+                    <label for="poh">Past Ocular History (POH) relevant to emergency</label>
+                    <textarea id="poh" name="poh" rows="2" placeholder="e.g., Previous surgeries, glaucoma history.">No significant POH. Last eye exam 2 years ago, reportedly WNL. Wears reading glasses.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pmh">Past Medical History (PMH) relevant to emergency</label>
+                    <textarea id="pmh" name="pmh" rows="2" placeholder="e.g., Bleeding disorders, diabetes, immunocompromised.">Controlled hypertension (since 5 years ago).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="allergies">Allergies</label>
+                    <textarea id="allergies" name="allergies" rows="1" placeholder="e.g., Penicillin, Latex.">NKDA (No Known Drug Allergies).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="currentMedications">Current Medications</label>
+                    <textarea id="currentMedications" name="currentMedications" rows="2" placeholder="e.g., Blood thinners.">Lisinopril 10mg QD.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tetanusStatus">Tetanus Status (for trauma)</label>
+                    <input type="text" id="tetanusStatus" name="tetanusStatus" placeholder="e.g., Up-to-date (last booster 2 years ago)." value="Unknown, last booster likely >10 years ago.">
+                </div>
+                <div class="form-group">
+                    <label for="lastMeal">Last Meal (if potential surgery)</label>
+                    <input type="text" id="lastMeal" name="lastMeal" placeholder="e.g., Ate 2 hours ago." value="Ate sandwich at 12:00 PM (2.5 hours prior).">
+                </div>
+            </fieldset>
+            <fieldset class="section">
+                <legend>Examination (Emergency Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>UCVA OD</label>
+                        <input type="text" name="vaUncorrectedOD" placeholder="e.g., 20/40 (6/12), HM, LP" value="20/200">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>UCVA OS</label>
+                        <input type="text" name="vaUncorrectedOS" placeholder="e.g., 20/50 (6/15), HM, LP" value="20/20">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>PH VA OD</label>
+                        <input type="text" name="vaPinHoleOD" placeholder="e.g., 20/30 (6/9)" value="20/100">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>PH VA OS</label>
+                        <input type="text" name="vaPinHoleOS" placeholder="e.g., 20/40 (6/12)" value="20/20">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="externalExam_statusOD">External Exam OD</label>
+                    <select id="externalExam_statusOD" name="externalExam_statusOD" aria-controls="externalExamOD">
+                        <option value="WNL">WNL</option>
+                        <option value="Lid Edema" selected>Lid Edema</option>
+                        <option value="Ecchymosis">Ecchymosis</option>
+                        <option value="Proptosis">Proptosis</option>
+                        <option value="Orbital Fx Suspected">Orbital Fx Suspected</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="externalExamOD" name="externalExamOD" rows="1" placeholder="Describe other external findings." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="externalExam_statusOD">Moderate lid edema and erythema OD.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="externalExam_statusOS">External Exam OS</label>
+                    <select id="externalExam_statusOS" name="externalExam_statusOS" aria-controls="externalExamOS">
+                        <option value="WNL" selected>WNL</option>
+                        <option value="Lid Edema">Lid Edema</option>
+                        <option value="Ecchymosis">Ecchymosis</option>
+                        <option value="Proptosis">Proptosis</option>
+                        <option value="Orbital Fx Suspected">Orbital Fx Suspected</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="externalExamOS" name="externalExamOS" rows="1" placeholder="Describe other external findings." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="externalExam_statusOS"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pupilsEmergency">Pupils <sup>*</sup></label>
+                    <select id="pupilsEmergency" name="pupilsEmergency" required aria-required="true" aria-controls="pupilsEmergency_details">
+                        <option value="PERRLA">PERRLA</option>
+                        <option value="APD OD">APD OD</option>
+                        <option value="APD OS">APD OS</option>
+                        <option value="Fixed/Dilated">Fixed/Dilated</option>
+                        <option value="Fixed/Constricted">Fixed/Constricted</option>
+                        <option value="Irregular Shape" selected>Irregular Shape</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="pupilsEmergency_details" name="pupilsEmergency_details" rows="1" placeholder="Describe pupils if 'Other' selected or for additional details." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="pupilsEmergency">OD: Pupil irregular, peaking nasally. OS: PERRLA. No APD.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="eomsEmergency">Extraocular Motility (EOMs)</label>
+                    <select id="eomsEmergency" name="eomsEmergency" aria-controls="eomsEmergency_details">
+                        <option value="Full and Smooth" selected>Full and Smooth</option>
+                        <option value="Restricted">Restricted</option>
+                        <option value="Painful">Painful</option>
+                        <option value="Overaction">Overaction</option>
+                        <option value="Underaction">Underaction</option>
+                        <option value="Other">Other (describe below)</option>
+                    </select>
+                    <textarea id="eomsEmergency_details" name="eomsEmergency_details" rows="1" placeholder="Describe EOMs if 'Other' selected or for additional details." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="eomsEmergency"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="visualFieldGross">Visual Field (Gross)</label>
+                    <select id="visualFieldGross" name="visualFieldGross">
+                        <option value="Full" selected>Full</option>
+                        <option value="Gross Constriction">Gross Constriction</option>
+                        <option value="Quadrantanopsia">Quadrantanopsia</option>
+                        <option value="Hemianopsia">Hemianopsia</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="iop-label">Intraocular Pressure (IOP)</div>
+                <div class="form-group">
+                    <label>Globe Rupture Suspected? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="globeRuptureSuspected_yes" name="globeRuptureSuspected" value="Yes" required aria-required="true">
+                        <label for="globeRuptureSuspected_yes">Yes (DO NOT proceed with Goldmann Tonometry)</label>
+                        <input type="radio" id="globeRuptureSuspected_no" name="globeRuptureSuspected" value="No" checked required aria-required="true">
+                        <label for="globeRuptureSuspected_no">No</label>
+                    </div>
+                </div>
+                <div class="iop-row">
+                    <div class="form-group iop-item">
+                        <label>IOP OD (mmHg)</label>
+                        <input type="text" name="iopOD" placeholder="e.g., 15 @ 10:30 AM" value="18 mmHg @ 2:40 PM">
+                    </div>
+                    <div class="form-group iop-item">
+                        <label>IOP OS (mmHg)</label>
+                        <input type="text" name="iopOS" placeholder="e.g., 16 @ 10:30 AM" value="16 mmHg @ 2:40 PM">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="iopMethodEmergency">Method</label>
+                    <select id="iopMethodEmergency" name="iopMethodEmergency">
+                        <option value="">Select...</option>
+                        <option value="NCT">NCT</option>
+                        <option value="Goldmann">Goldmann Applanation Tonometry</option>
+                        <option value="Icare" selected>Icare</option>
+                        <option value="Tono-Pen">Tono-Pen</option>
+                        <option value="Digital">Digital (if globe rupture suspected)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="iopConsistency">IOP Consistency (Palpation)</label>
+                    <select id="iopConsistency" name="iopConsistency">
+                        <option value="N/A" selected>N/A</option>
+                        <option value="Soft">Soft</option>
+                        <option value="Firm">Firm</option>
+                        <option value="Tense">Tense</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="slitLampEmergency">Slit Lamp Exam (Anterior Segment) <sup>*</sup></label>
+                    <textarea id="slitLampEmergency" name="slitLampEmergency" rows="4" placeholder="e.g., Cornea: full thickness laceration 3mm OD. AC: 2+ cell/flare, microhyphema. Iris: Iridodialysis OS." required aria-required="true">OD: Conjunctiva: 360 degrees injection, chemosis. Cornea: Deep stromal foreign body 2mm from limbus at 3 o'clock with surrounding rust ring. No obvious penetration into anterior chamber. AC: Deep and quiet. Iris: Flat and intact. Lens: Clear. OS: WNL.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cornealFindingOD">Corneal Finding OD</label>
+                    <select id="cornealFindingOD" name="cornealFindingOD" aria-controls="cornealFindingOD_details">
+                        <option value="Clear">Clear</option>
+                        <option value="Abrasion">Abrasion</option>
+                        <option value="FB" selected>Foreign Body</option>
+                        <option value="Infiltrate">Infiltrate</option>
+                        <option value="Edema">Edema</option>
+                        <option value="Laceration">Laceration</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="cornealFindingOD_details" name="cornealFindingOD_details" placeholder="Size, Location, Depth of finding." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="cornealFindingOD" value="Deep stromal metallic FB 2mm from limbus at 3 o'clock with rust ring.">
+                </div>
+                <div class="form-group">
+                    <label for="cornealFindingOS">Corneal Finding OS</label>
+                    <select id="cornealFindingOS" name="cornealFindingOS" aria-controls="cornealFindingOS_details">
+                        <option value="Clear" selected>Clear</option>
+                        <option value="Abrasion">Abrasion</option>
+                        <option value="FB">Foreign Body</option>
+                        <option value="Infiltrate">Infiltrate</option>
+                        <option value="Edema">Edema</option>
+                        <option value="Laceration">Laceration</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="cornealFindingOS_details" name="cornealFindingOS_details" placeholder="Size, Location, Depth of finding." class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="cornealFindingOS">
+                </div>
+                <div class="form-group">
+                    <label for="foreignBodyType">Foreign Body Type (if applicable)</label>
+                    <select id="foreignBodyType" name="foreignBodyType">
+                        <option value="">N/A</option>
+                        <option value="Metallic" selected>Metallic</option>
+                        <option value="Organic">Organic</option>
+                        <option value="Plastic">Plastic</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="acFindingOD">Anterior Chamber OD</label>
+                    <select id="acFindingOD" name="acFindingOD">
+                        <option value="Deep & Quiet" selected>Deep & Quiet</option>
+                        <option value="Cells 1+">Cells 1+</option>
+                        <option value="Cells 2+">Cells 2+</option>
+                        <option value="Cells 3+">Cells 3+</option>
+                        <option value="Cells 4+">Cells 4+</option>
+                        <option value="Flare 1+">Flare 1+</option>
+                        <option value="Flare 2+">Flare 2+</option>
+                        <option value="Hyphema">Hyphema</option>
+                        <option value="Hypopyon">Hypopyon</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="acFindingOS">Anterior Chamber OS</label>
+                    <select id="acFindingOS" name="acFindingOS">
+                        <option value="Deep & Quiet" selected>Deep & Quiet</option>
+                        <option value="Cells 1+">Cells 1+</option>
+                        <option value="Cells 2+">Cells 2+</option>
+                        <option value="Cells 3+">Cells 3+</option>
+                        <option value="Cells 4+">Cells 4+</option>
+                        <option value="Flare 1+">Flare 1+</option>
+                        <option value="Flare 2+">Flare 2+</option>
+                        <option value="Hyphema">Hyphema</option>
+                        <option value="Hypopyon">Hypopyon</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="irisFindingOD">Iris OD</label>
+                    <select id="irisFindingOD" name="irisFindingOD">
+                        <option value="Flat & Intact" selected>Flat & Intact</option>
+                        <option value="Iridodialysis">Iridodialysis</option>
+                        <option value="Sphincter Damage">Sphincter Damage</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="irisFindingOS">Iris OS</label>
+                    <select id="irisFindingOS" name="irisFindingOS">
+                        <option value="Flat & Intact" selected>Flat & Intact</option>
+                        <option value="Iridodialysis">Iridodialysis</option>
+                        <option value="Sphincter Damage">Sphincter Damage</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="lensFindingOD">Lens OD</label>
+                    <select id="lensFindingOD" name="lensFindingOD">
+                        <option value="Clear" selected>Clear</option>
+                        <option value="Traumatic Cataract">Traumatic Cataract</option>
+                        <option value="Subluxation">Subluxation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="lensFindingOS">Lens OS</label>
+                    <select id="lensFindingOS" name="lensFindingOS">
+                        <option value="Clear" selected>Clear</option>
+                        <option value="Traumatic Cataract">Traumatic Cataract</option>
+                        <option value="Subluxation">Subluxation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="seidelTestOD">Seidel Test OD</label>
+                    <select id="seidelTestOD" name="seidelTestOD">
+                        <option value="Not Performed">Not Performed</option>
+                        <option value="Negative" selected>Negative</option>
+                        <option value="Positive">Positive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="seidelTestOS">Seidel Test OS</label>
+                    <select id="seidelTestOS" name="seidelTestOS">
+                        <option value="Not Performed" selected>Not Performed</option>
+                        <option value="Negative">Negative</option>
+                        <option value="Positive">Positive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="posteriorSegmentEmergency">Posterior Segment Exam (DFE) <sup>*</sup></label>
+                    <textarea id="posteriorSegmentEmergency" name="posteriorSegmentEmergency" rows="4" placeholder="e.g., Vitreous: 1+ hemorrhage OD. Retina: Inferior retinal detachment OS. Optic Disc: WNL OU." required aria-required="true">OD: Clear vitreous, attached retina, healthy optic disc and macula. OS: WNL.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="vitreousHemorrhageOD">Vitreous Hemorrhage OD</label>
+                    <select id="vitreousHemorrhageOD" name="vitreousHemorrhageOD">
+                        <option value="None" selected>None</option>
+                        <option value="Trace">Trace</option>
+                        <option value="1+">1+</option>
+                        <option value="2+">2+</option>
+                        <option value="3+">3+</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="vitreousHemorrhageOS">Vitreous Hemorrhage OS</label>
+                    <select id="vitreousHemorrhageOS" name="vitreousHemorrhageOS">
+                        <option value="None" selected>None</option>
+                        <option value="Trace">Trace</option>
+                        <option value="1+">1+</option>
+                        <option value="2+">2+</option>
+                        <option value="3+">3+</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="retinalFindingOD">Retinal Finding OD</label>
+                    <select id="retinalFindingOD" name="retinalFindingOD">
+                        <option value="Attached" selected>Attached</option>
+                        <option value="Detachment">Detachment</option>
+                        <option value="Hemorrhage">Hemorrhage</option>
+                        <option value="Edema">Edema</option>
+                        <option value="Hole/Tear">Hole/Tear</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="retinalFindingOS">Retinal Finding OS</label>
+                    <select id="retinalFindingOS" name="retinalFindingOS">
+                        <option value="Attached" selected>Attached</option>
+                        <option value="Detachment">Detachment</option>
+                        <option value="Hemorrhage">Hemorrhage</option>
+                        <option value="Edema">Edema</option>
+                        <option value="Hole/Tear">Hole/Tear</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Investigations</legend>
+                <div class="form-group">
+                    <label for="fluoresceinStaining">Fluorescein Staining Findings</label>
+                    <textarea id="fluoresceinStaining" name="fluoresceinStaining" rows="2" placeholder="e.g., Corneal abrasion OD (2x3mm, central). Seidel test negative.">OD: Small epithelial defect surrounding metallic foreign body. Negative Seidel test confirms no globe perforation.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="imagingOrdered">Imaging Ordered (if any)</label>
+                    <textarea id="imagingOrdered" name="imagingOrdered" rows="2" placeholder="e.g., Orbital X-ray ordered to rule out intraocular foreign body. B-scan ultrasonography to rule out RD.">Orbital X-ray ordered STAT to rule out intraocular foreign body (IOFB).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="otherEmergencyTests">Other Emergency Tests</label>
+                    <textarea id="otherEmergencyTests" name="otherEmergencyTests" rows="2">None.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="urgencyLevel">Urgency Level <sup>*</sup></label>
+                    <select id="urgencyLevel" name="urgencyLevel" required aria-required="true">
+                        <option value="">Select...</option>
+                        <option value="Emergency" selected>Emergency (Immediate referral/management)</option>
+                        <option value="Urgent">Urgent (Refer within 24-48 hours)</option>
+                        <option value="Routine">Routine (Manage in-house/scheduled follow-up)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Traumatic Iritis OD&#10;2. Corneal abrasion OD&#10;3. Rule out globe rupture" required aria-required="true">1. Corneal foreign body, metallic, OD (T15.01XA).
+2. Suspected open globe injury, rule out (S05.61XA).
+3. Traumatic iritis OD (H20.021).</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan / Treatment <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Topical antibiotic (Moxifloxacin QID OD), Cycloplegic (Cyclopentolate 1% TID OD).&#10;2. Oral analgesics (Paracetamol PRN).&#10;3. Urgent referral to ophthalmology for possible surgical intervention.&#10;4. Provide discharge instructions." required aria-required="true">1. Attempt foreign body removal OD by irrigation and gentle spud removal. Advise patient of IOFB risk. If unable to remove or if globe rupture suspected, urgent referral to ophthalmology.
+2. Topical antibiotic (Moxifloxacin QID OD), Cycloplegic (Cyclopentolate 1% BID OD).
+3. Oral pain relief (Paracetamol 500mg PRN).
+4. Urgent orbital X-ray STAT for IOFB rule-out.
+5. Tetanus status updated if necessary.
+6. Urgent referral to Ophthalmologist for foreign body removal / further evaluation if required.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral Made? <sup>*</sup></label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="referralMadeYes" name="referralMade" value="Yes" required aria-required="true" aria-controls="referralDetails" checked>
+                        <label for="referralMadeYes">Yes</label>
+                        <input type="radio" id="referralMadeNo" name="referralMade" value="No" required aria-required="true" aria-controls="referralDetails">
+                        <label for="referralMadeNo">No</label>
+                    </div>
+                    <textarea id="referralDetails" name="referralDetails" rows="2" placeholder="To whom? Urgency of referral." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="referralMadeYes referralMadeNo">Urgent referral placed to Dr. Eye Surgeon at City Hospital ER. Patient advised to proceed there directly for further management. Sent clinical notes via secure fax.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="patientStatusOnArrival">Patient Status (Consciousness, Orientation)</label>
+                    <select id="patientStatusOnArrival" name="patientStatusOnArrival">
+                        <option value="Alert & Oriented x3" selected>Alert & Oriented x3</option>
+                        <option value="Drowsy">Drowsy</option>
+                        <option value="Confused">Confused</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transportMethod">Transport Method</label>
+                    <select id="transportMethod" name="transportMethod">
+                        <option value="">Select...</option>
+                        <option value="Ambulance">Ambulance</option>
+                        <option value="Private Vehicle" selected>Private Vehicle</option>
+                        <option value="Walk-in">Walk-in</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., RTC tomorrow AM (24 hours) or proceed directly to ER if worsening. Avoid rubbing eye, wear shield.">Patient instructed to go directly to City Hospital ER for ophthalmology consultation. Advised to avoid rubbing eye, wear eye shield (provided). Return to our office for follow-up in 24-48 hours if instructed by ophthalmology. Call immediately for worsening pain or vision.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Patient was very anxious about vision. Counselled thoroughly on risks and the need for urgent specialist care. Documented clear communication with patient and ophthalmology office.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">This emergency required rapid assessment for globe integrity and urgent referral. Emphasized systematic approach: history, VA, pupils, IOP, slit lamp with fluorescein, DFE. The importance of clear communication with both patient and specialist is paramount in such cases.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="emergency-case-script.js"></script>
+    <!-- The PDF export handler script for general case -->
+    <script src="emergency-case-pdf.js"></script> 
+</body>
+</html>

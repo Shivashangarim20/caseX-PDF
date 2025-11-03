@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus CaseX - Low Vision Case</title>
+    
+    <!-- PDF Library CDNs - IMPORTANT: Keep these here in each HTML file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Base Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #004d80;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        nav {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allow nav items to wrap */
+            justify-content: center;
+            gap: 10px; /* Space between nav items */
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+        }
+
+        main.case-sheet-container {
+            flex-grow: 1; /* Allows main content to expand and push footer down */
+            /* --- MODIFICATION FOR LARGER DESKTOP SIZE --- */
+            width: 95vw; /* Make it take up 95% of the viewport width */
+            margin: 20px auto; /* Center the container and add vertical space */
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-actions button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d80;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-actions button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Fieldset Styling */
+        fieldset.section {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+        }
+
+        fieldset.section legend {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #004d80;
+            padding: 0 10px;
+            background-color: white; /* To make legend stand out */
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        /* Form Group Layout - Using Grid for main fieldset content */
+        fieldset.section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive 2-column or more */
+            gap: 20px; /* Space between grid items (form groups) */
+        }
+
+        /* Specific overrides for sections that need full width or a different internal layout */
+        .form-group {
+            /* Base styling for all form groups */
+            margin-bottom: 0; /* Managed by grid gap */
+        }
+
+        /* Ensure certain form groups (like textarea for CC, HPI, etc.) span full width */
+        .form-group:has(textarea[name="primaryLowVisionCause"]),
+        .form-group:has(textarea[name="onsetProgressionLv"]),
+        .form-group:has(textarea[name="chiefComplaint"]),
+        .form-group:has(textarea[name="functionalVisionConcerns"]),
+        .form-group:has(textarea[name="lvGoals"]),
+        .form-group:has(textarea[name="lightingPreferences"]),
+        .form-group:has(textarea[name="glareSensitivityLv"]),
+        .form-group:has(textarea[name="currentAidsUsed"]),
+        .form-group:has(textarea[name="mobility_details_group"]),
+        .form-group:has(textarea[name="vaChartUsed_other"]),
+        .form-group:has(textarea[name="prl"]),
+        .form-group:has(textarea[name="contrastSensitivityLv"]),
+        .form-group:has(textarea[name="contrastSensitivityChart_other"]),
+        .form-group:has(textarea[name="amslerGridOD"]),
+        .form-group:has(textarea[name="amslerGridOS"]),
+        .form-group:has(textarea[name="visualFieldSpecificsLv"]),
+        .form-group:has(textarea[name="visualFieldType_other"]),
+        .form-group:has(textarea[name="refractionLv"]),
+        .form-group:has(textarea[name="magnificationNeeded"]),
+        .form-group:has(textarea[name="lightingAssessment"]),
+        .form-group:has(textarea[name="handMagnifiers"]),
+        .form-group:has(textarea[name="standMagnifiers"]),
+        .form-group:has(textarea[name="telescopes"]),
+        .form-group:has(textarea[name="filterLenses"]),
+        .form-group:has(textarea[name="nonOpticalAids"]),
+        .form-group:has(textarea[name="electronicAids"]),
+        .form-group:has(textarea[name="audioTactileAids"]),
+        .form-group:has(textarea[name="aidsDispensedList"]),
+        .form-group:has(textarea[name="referralOM_details"]),
+        .form-group:has(textarea[name="referralOT_details"]),
+        .form-group:has(textarea[name="referralSS_details"]),
+        .form-group:has(textarea[name="otherReferralsLv"]),
+        .form-group:has(textarea[name="assessmentDiagnoses"]),
+        .form-group:has(textarea[name="plan"]),
+        .form-group:has(textarea[name="prognosis"]),
+        .form-group:has(textarea[name="followUpInstructions"]),
+        .form-group:has(textarea[name="internalNotes"]),
+        .form-group:has(textarea[name="notesReflection"]) {
+            grid-column: 1 / -1; /* Make these textareas span all columns */
+        }
+
+        /* Headings for VA, Aids sections */
+        .va-label {
+            grid-column: 1 / -1; /* Span full width */
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #004d80;
+        }
+
+        /* Flexbox for rows within grid sections (like VA) */
+        .va-row {
+            grid-column: 1 / -1; /* Span full width within the fieldset grid */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+            gap: 15px; /* Space between items in the row */
+            margin-bottom: 10px; /* Space between flex rows */
+            align-items: flex-end; /* Align items to the bottom of the row if they have different heights */
+        }
+
+        .va-item {
+            flex: 1; /* Distribute space equally */
+            min-width: 250px; /* Minimum width before wrapping */
+        }
+
+        /* Inline input groups (radio/checkbox) */
+        .input-group-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px; /* Space between inline options */
+            margin-top: 5px;
+            align-items: center;
+        }
+        .input-group-inline input[type="radio"],
+        .input-group-inline input[type="checkbox"] {
+            width: auto; /* Override 100% width */
+            margin-right: 5px;
+        }
+
+        /* Conditional Group Styling */
+        .conditional-group {
+            margin-top: 10px;
+            padding: 0 10px; /* Adjust padding for collapsed state */
+            border-left: 3px solid #004d80;
+            background-color: #e9f5ff;
+            border-radius: 4px;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+            max-height: 0; /* Start collapsed */
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+            box-sizing: border-box; /* Ensure padding is included in max-height */
+        }
+
+        /* Use JavaScript to toggle aria-expanded="true" when condition is met */
+        .conditional-group[aria-expanded="true"] {
+            max-height: 150px; /* A sufficiently large value for textareas/inputs, adjust as needed */
+            opacity: 1;
+            pointer-events: auto;
+            padding: 10px; /* Restore padding when expanded */
+            margin-top: 10px; /* Restore margin when expanded */
+        }
+
+        /* Input Styles */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            color: #495057;
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        textarea {
+            min-height: 40px; /* Default min-height for textareas */
+            resize: vertical;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: auto; /* Pushes footer to the bottom */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav a {
+                margin: 5px;
+            }
+            main.case-sheet-container {
+                margin: 10px;
+                padding: 15px;
+                width: auto; /* Revert to auto width on small screens to fit content */
+            }
+            fieldset.section {
+                grid-template-columns: 1fr; /* Stack columns on small screens */
+            }
+            .va-row {
+                flex-direction: column; /* Stack items in rows on small screens */
+                gap: 10px;
+            }
+            .va-item {
+                min-width: unset; /* Allow full width */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Focus CaseX - Low Vision Case</h1>
+        <nav>
+            <a href="index.html">Back to Case Selection</a>
+            <a href="general-case.html">General</a>
+            <a href="certificate-case.html">Certificate</a>
+            <a href="emergency-case.html">Emergency</a>
+            <a href="followup-case.html">Follow-up</a>
+            <a href="contactlens-case.html">Contact Lens</a>
+            <a href="orthoptics-case.html">Orthoptics</a>
+            <a href="lowvision-case.html">Low Vision</a>
+            <a href="surgicalcomanagement-case.html">Surgical Co-management</a>
+            <a href="pediatricoptometry-case.html">Pediatric Optometry</a>
+            <a href="ocularsurfacedisease-case.html">Ocular Surface Disease</a>
+            <a href="myopiamanagement-case.html">Myopia Management</a>
+            <a href="neurooptometry-case.html">Neuro-Optometry & Rehab</a>
+        </nav>
+    </header>
+
+    <main class="case-sheet-container">
+        <form id="optometryCaseForm">
+            <input type="hidden" name="caseType" value="lowvision">
+
+            <!-- FORM ACTIONS AT THE TOP -->
+            <div class="form-actions form-actions-top">
+                <button type="button" id="clearForm">Clear Form</button>
+                <button type="submit" id="saveCase">Save Case</button>
+                <button type="button" id="downloadPdf">Download PDF</button>
+            </div>
+
+            <fieldset class="section">
+                <legend>Patient Info</legend>
+                <div class="form-group">
+                    <label for="patientId">Patient ID (Optional)</label>
+                    <input type="text" id="patientId" name="patientId" placeholder="e.g., P00123" value="LV-003-RB">
+                </div>
+                <div class="form-group">
+                    <label for="patientName">Name <sup>*</sup></label>
+                    <input type="text" id="patientName" name="patientName" placeholder="e.g., Robert Brown" required aria-required="true" autofocus value="Robert Brown">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth <sup>*</sup></label>
+                    <input type="date" id="dateOfBirth" name="dateOfBirth" required aria-required="true" value="1955-03-15">
+                </div>
+                <div class="form-group">
+                    <label for="primaryLowVisionCause">Primary Cause of Low Vision <sup>*</sup></label>
+                    <textarea id="primaryLowVisionCause" name="primaryLowVisionCause" rows="2" placeholder="e.g., Age-related Macular Degeneration (AMD). / Diabetic Retinopathy." required aria-required="true">Age-related Macular Degeneration (AMD), geographic atrophy OU, worse OS.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="onsetProgressionLv">Onset/Progression of Vision Loss</label>
+                    <textarea id="onsetProgressionLv" name="onsetProgressionLv" rows="2" placeholder="e.g., Gradual vision loss over 5 years, worse in central vision.">Gradual bilateral vision loss over the past 8 years, central scotoma worsening. Stable for the last 6 months.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Chief Complaint (CC) - Low Vision</legend>
+                <div class="form-group">
+                    <label for="chiefComplaint">Chief Complaint <sup>*</sup></label>
+                    <textarea id="chiefComplaint" name="chiefComplaint" rows="2" placeholder="e.g., Difficulty reading small print and recognizing faces. / Struggles with mobility in dim light." required aria-required="true">Difficulty reading, inability to recognize faces at a distance, and challenges with mobility in unfamiliar environments.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="functionalVisionConcerns">Specific Functional Vision Concerns</label>
+                    <textarea id="functionalVisionConcerns" name="functionalVisionConcerns" rows="3" placeholder="e.g., Cannot read prescription labels, struggles with grocery shopping, difficulty seeing oven dials.">Patient cannot read newspaper print, struggles to see the TV, has difficulty with food preparation (chopping), and avoids driving at night. Finds it hard to see steps or curbs.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Impact on Activities of Daily Living (ADLs)</label>
+                    <div class="input-group-inline">
+                        <input type="checkbox" id="adl_reading" name="adl_reading" value="Reading" checked><label for="adl_reading">Reading</label>
+                        <input type="checkbox" id="adl_writing" name="adl_writing" value="Writing" checked><label for="adl_writing">Writing</label>
+                        <input type="checkbox" id="adl_cooking" name="adl_cooking" value="Cooking" checked><label for="adl_cooking">Cooking</label>
+                        <input type="checkbox" id="adl_shopping" name="adl_shopping" value="Shopping"><label for="adl_shopping">Shopping</label>
+                        <input type="checkbox" id="adl_driving" name="adl_driving" value="Driving"><label for="adl_driving">Driving</label>
+                        <input type="checkbox" id="adl_mobility" name="adl_mobility" value="Mobility" checked><label for="adl_mobility">Mobility</label>
+                        <input type="checkbox" id="adl_faceRecognition" name="adl_faceRecognition" value="Face Recognition" checked><label for="adl_faceRecognition">Face Recognition</label>
+                        <input type="checkbox" id="adl_tvComputer" name="adl_tvComputer" value="TV/Computer Use" checked><label for="adl_tvComputer">TV/Computer Use</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="lvGoals">Goals for Low Vision Aids/Rehabilitation</label>
+                    <textarea id="lvGoals" name="lvGoals" rows="2" placeholder="e.g., Wants to read newspaper, see faces clearly, maintain independence.">Patient wants to be able to read personal mail, prepare simple meals independently, and safely navigate his home and familiar outdoor areas. Would like to enjoy watching TV again.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>History</legend>
+                <div class="form-group">
+                    <label for="lightingPreferences">Lighting Preferences</label>
+                    <input type="text" id="lightingPreferences" name="lightingPreferences" placeholder="e.g., Prefers bright, direct light for reading." value="Prefers very bright, warm (3000K) direct lighting for near tasks. Finds natural daylight comfortable for general activities.">
+                </div>
+                <div class="form-group">
+                    <label for="glareSensitivityLv">Glare Sensitivity</label>
+                    <input type="text" id="glareSensitivityLv" name="glareSensitivityLv" placeholder="e.g., Significant glare sensitivity in bright environments." value="Moderate glare sensitivity, particularly outdoors on sunny days or in brightly lit stores.">
+                </div>
+                <div class="form-group">
+                    <label for="currentAidsUsed">Current Aids Used (optical/non-optical)</label>
+                    <textarea id="currentAidsUsed" name="currentAidsUsed" rows="2" placeholder="e.g., Handheld magnifier (4x), large print books.">Currently uses a 3x handheld illuminated magnifier (OpticLens) for occasional large print, but finds it cumbersome. No other specialized aids.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Mobility Impairment due to Vision?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="mobilityImpairmentYes" name="mobilityImpairment" value="Yes" aria-controls="mobility_details_group" checked>
+                        <label for="mobilityImpairmentYes">Yes</label>
+                        <input type="radio" id="mobilityImpairmentNo" name="mobilityImpairment" value="No" aria-controls="mobility_details_group">
+                        <label for="mobilityImpairmentNo">No</label>
+                    </div>
+                    <textarea id="mobility_details_group" name="mobility_details" rows="2" placeholder="Describe specific mobility challenges." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="mobilityImpairmentYes mobilityImpairmentNo">Struggles with depth perception for stairs and curbs, leading to occasional stumbles. Avoids going out alone after dark.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Examination (Low Vision Focused)</legend>
+
+                <div class="va-label">Visual Acuity</div>
+                <div class="form-group">
+                    <label for="vaChartUsed">VA Chart Used</label>
+                    <select id="vaChartUsed" name="vaChartUsed" aria-controls="vaChartUsed_other">
+                        <option value="">Select...</option>
+                        <option value="ETDRS" selected>ETDRS</option>
+                        <option value="Lighthouse">Lighthouse</option>
+                        <option value="Feinbloom">Feinbloom</option>
+                        <option value="Snellen">Snellen</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="vaChartUsed_other" name="vaChartUsed_other" placeholder="Specify other VA chart used" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="vaChartUsed" disabled>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>Distance VA OD (LogMAR/Snellen)</label>
+                        <input type="text" name="vaDistanceOD" placeholder="e.g., 1.0 LogMAR (20/200, 6/60)" value="0.8 LogMAR (20/125, 6/38)">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>Distance VA OS (LogMAR/Snellen)</label>
+                        <input type="text" name="vaDistanceOS" placeholder="e.g., 1.2 LogMAR (20/300, 6/90)" value="1.0 LogMAR (20/200, 6/60)">
+                    </div>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>Near VA OD (M-Units/Jaeger)</label>
+                        <input type="text" name="vaNearOD" placeholder="e.g., 1.25 M / J5 at 10cm." value="0.8 M at 20cm">
+                    </div>
+                    <div class="form-group va-item">
+                        <label>Near VA OS (M-Units/Jaeger)</label>
+                        <input type="text" name="vaNearOS" placeholder="e.g., 1.50 M / J6 at 10cm." value="1.0 M at 20cm">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="prl">Preferred Retinal Locus (PRL) (if applicable)</label>
+                    <input type="text" id="prl" name="prl" placeholder="e.g., Inferior-temporal PRL OD." value="Superior-temporal PRL OD, Inferior-temporal PRL OS (verified with Macular Perimeter).">
+                </div>
+                <div class="form-group">
+                    <label for="eccentricViewingStatus">Eccentric Viewing Training Status</label>
+                    <select id="eccentricViewingStatus" name="eccentricViewingStatus">
+                        <option value="">Select...</option>
+                        <option value="Initiated" selected>Initiated</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Proficient">Proficient</option>
+                        <option value="Not Applicable">Not Applicable</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="contrastSensitivityLv">Contrast Sensitivity</label>
+                    <input type="text" id="contrastSensitivityLv" name="contrastSensitivityLv" placeholder="e.g., Pelli-Robson chart: 0.90 log units." value="Pelli-Robson chart: 0.75 log units OU.">
+                </div>
+                <div class="form-group">
+                    <label for="contrastSensitivityChart">Contrast Sensitivity Chart Used</label>
+                    <select id="contrastSensitivityChart" name="contrastSensitivityChart" aria-controls="contrastSensitivityChart_other">
+                        <option value="">Select...</option>
+                        <option value="Pelli-Robson" selected>Pelli-Robson</option>
+                        <option value="LEA Symbols">LEA Symbols</option>
+                        <option value="FACT">FACT</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="contrastSensitivityChart_other" name="contrastSensitivityChart_other" placeholder="Specify other chart used" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="contrastSensitivityChart" disabled>
+                </div>
+                <div class="va-row">
+                    <div class="form-group va-item">
+                        <label>Amsler Grid OD</label>
+                        <textarea id="amslerGridOD" name="amslerGridOD" rows="1" placeholder="e.g., Large central scotoma OD.">Dense central scotoma encompassing the fovea.</textarea>
+                    </div>
+                    <div class="form-group va-item">
+                        <label>Amsler Grid OS</label>
+                        <textarea id="amslerGridOS" name="amslerGridOS" rows="1" placeholder="e.g., No change from baseline.">Larger, denser central scotoma with adjacent metamorphopsia.</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="visualFieldSpecificsLv">Visual Fields (specific tests)</label>
+                    <textarea id="visualFieldSpecificsLv" name="visualFieldSpecificsLv" rows="2" placeholder="e.g., Tangent screen: Tunnel vision OS.">Humphrey 10-2 test (SITA-Fast): Significant central depression OD, absolute central scotoma OS.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="visualFieldType">Type of Field Loss</label>
+                    <select id="visualFieldType" name="visualFieldType" aria-controls="visualFieldType_other">
+                        <option value="">Select...</option>
+                        <option value="Central Scotoma" selected>Central Scotoma</option>
+                        <option value="Peripheral Field Loss">Peripheral Field Loss</option>
+                        <option value="Hemianopsia">Hemianopsia</option>
+                        <option value="Tunnel Vision">Tunnel Vision</option>
+                        <option value="Generalized Depression">Generalized Depression</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="visualFieldType_other" name="visualFieldType_other" placeholder="Specify other type of field loss" class="conditional-group" aria-expanded="false" style="max-height: 0; opacity: 0; pointer-events: none; padding: 0 10px; margin-top: 0;" aria-describedby="visualFieldType" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="refractionLv">Refraction (maximize best corrected vision)</label>
+                    <textarea id="refractionLv" name="refractionLv" rows="2" placeholder="e.g., OD: -2.00 -0.50 x 180 Add +4.00.">OD: +1.00 -0.50 x 90 Add +3.00, BCVA 0.8 LogMAR
+OS: +1.50 DS Add +3.00, BCVA 1.0 LogMAR</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="magnificationNeeded">Calculated Magnification Needed for Reading</label>
+                    <input type="text" id="magnificationNeeded" name="magnificationNeeded" placeholder="e.g., 4X" value="For 0.8M print at 40cm, approx. 4X magnification for OS.">
+                </div>
+                <div class="form-group">
+                    <label for="lightingAssessment">Lighting Assessment</label>
+                    <textarea id="lightingAssessment" name="lightingAssessment" rows="2" placeholder="e.g., Patient performs better with task lamp (LED, 5000K).">Patient benefits significantly from a high-CRI (90+), 4000K LED task lamp with adjustable dimmer. Minimal benefit from overhead room lighting alone.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Low Vision Aids Evaluation</legend>
+
+                <div class="va-label">Optical Aids</div>
+                <div class="form-group">
+                    <label for="handMagnifiers">Hand Magnifiers</label>
+                    <textarea id="handMagnifiers" name="handMagnifiers" rows="2" placeholder="e.g., Recommended Eschenbach 7x handheld magnifier.">Evaluated various handheld magnifiers. Patient found an Eschenbach Smartlux DIGITAL (5-12x) easier to manage and preferred its adjustable illumination and contrast modes for spot reading and labels.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="standMagnifiers">Stand Magnifiers</label>
+                    <textarea id="standMagnifiers" name="standMagnifiers" rows="2" placeholder="e.g., Recommended Coil 5x illuminated stand magnifier.">Recommended a Coil 7x illuminated stand magnifier. Patient found it stable and useful for longer reading tasks with both eyes.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="telescopes">Telescopes (Monocular/Binocular)</label>
+                    <textarea id="telescopes" name="telescopes" rows="2" placeholder="e.g., Eschenbach 4x monocular telescope for distance spot reading.">Tried an Eschenbach 2.5x Monocular for TV viewing, found some benefit but needs training. Patient not interested in bifocal telescopes at this time.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="filterLenses">Filter Lenses</label>
+                    <textarea id="filterLenses" name="filterLenses" rows="2" placeholder="e.g., Recommended No. 540 filter for outdoor glare.">Recommended No. 527 (orange-red) filter lenses for outdoor use to reduce glare and improve contrast, patient found it comfortable.</textarea>
+                </div>
+
+                <div class="va-label">Non-Optical Aids</div>
+                <div class="form-group">
+                    <label for="nonOpticalAids">Non-Optical Aids (e.g., reading stands, writing guides)</label>
+                    <textarea id="nonOpticalAids" name="nonOpticalAids" rows="2" placeholder="e.g., Provided signature guide. Recommended desktop reading stand.">Provided a signature guide and a bold-lined writing guide. Discussed large print calendars, check registers, and adapted kitchen tools. Recommended high-contrast cutting board.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="electronicAids">Electronic Aids (CCTV, Video Magnifiers, Software)</label>
+                    <textarea id="electronicAids" name="electronicAids" rows="3" placeholder="e.g., Demonstrated desktop CCTV, patient preferred. Discussed ZoomText.">Demonstrated a desktop CCTV (Freedom Scientific ONYX) and a portable video magnifier (VisioBook). Patient preferred the desktop unit for home use, but found the portable too small. Referred for training on electronic aids.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="audioTactileAids">Audio/Tactile Aids Considered</label>
+                    <textarea id="audioTactileAids" name="audioTactileAids" rows="2" placeholder="e.g., Audiobooks, Braille, Talking watches.">Discussed talking watch and audio labels. Patient showed interest in audiobooks via library services.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Aids Dispensed Today?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="aidsDispensedYes" name="aidsDispensedToday" value="Yes" aria-controls="aidsDispensedList" checked>
+                        <label for="aidsDispensedYes">Yes</label>
+                        <input type="radio" id="aidsDispensedNo" name="aidsDispensedToday" value="No" aria-controls="aidsDispensedList">
+                        <label for="aidsDispensedNo">No</label>
+                    </div>
+                    <textarea id="aidsDispensedList" name="aidsDispensedList" rows="3" placeholder="List aids dispensed and instructions." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="aidsDispensedYes aidsDispensedNo">1. Eschenbach Smartlux DIGITAL (5-12x) handheld video magnifier.
+2. Coil 7x illuminated stand magnifier.
+3. No. 527 filter clip-on lenses.
+Instructions: Practice using magnifiers for 15-20 min daily. Keep a journal of successes and challenges.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Referrals & Rehabilitation</legend>
+                <div class="form-group">
+                    <label>Referral to Orientation & Mobility (O&M) Specialist?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="referralOMYes" name="referralOM" value="Yes" aria-controls="referralOM_details" checked>
+                        <label for="referralOMYes">Yes</label>
+                        <input type="radio" id="referralOMNo" name="referralOM" value="No" aria-controls="referralOM_details">
+                        <label for="referralOMNo">No</label>
+                    </div>
+                    <textarea id="referralOM_details" name="referralOM_details" rows="2" placeholder="Specify O&M specialist and reason." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="referralOMYes referralOMNo">Referral to local O&M specialist (Community Vision Services) for outdoor mobility training, especially for curbs, stairs, and navigating unfamiliar public spaces. Emphasis on use of white cane for safety.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral to Occupational Therapist (OT) for ADLs?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="referralOTYes" name="referralOT" value="Yes" aria-controls="referralOT_details" checked>
+                        <label for="referralOTYes">Yes</label>
+                        <input type="radio" id="referralOTNo" name="referralOT" value="No" aria-controls="referralOT_details">
+                        <label for="referralOTNo">No</label>
+                    </div>
+                    <textarea id="referralOT_details" name="referralOT_details" rows="2" placeholder="Specify OT and areas for ADL training." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="referralOTYes referralOTNo">Referral to Occupational Therapist (Hospital Rehabilitation Dept) for ADL training, focusing on kitchen safety, medication management, and general home independence. Also for assessment of home modifications.</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Referral to Social Services/Support Groups?</label>
+                    <div class="input-group-inline">
+                        <input type="radio" id="referralSSYes" name="referralSS" value="Yes" aria-controls="referralSS_details" checked>
+                        <label for="referralSSYes">Yes</label>
+                        <input type="radio" id="referralSSNo" name="referralSS" value="No" aria-controls="referralSS_details">
+                        <label for="referralSSNo">No</label>
+                    </div>
+                    <textarea id="referralSS_details" name="referralSS_details" rows="2" placeholder="Specify service/group and patient needs." class="conditional-group" aria-expanded="true" style="max-height: 150px; opacity: 1; pointer-events: auto; padding: 10px; margin-top: 10px;" aria-describedby="referralSSYes referralSSNo">Provided information for the local Low Vision Support Group and the National Federation of the Blind. Discussed applying for disability benefits if needed.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="otherReferralsLv">Other Referrals/Consults (e.g., genetic counseling)</label>
+                    <textarea id="otherReferralsLv" name="otherReferralsLv" rows="2">Referred to retina specialist for 6-month follow-up on AMD status. Discussed nutritional supplements for AMD (AREDS 2).</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Assessment & Plan</legend>
+                <div class="form-group">
+                    <label for="assessmentDiagnoses">Assessment / Diagnoses <sup>*</sup></label>
+                    <textarea id="assessmentDiagnoses" name="assessmentDiagnoses" rows="5" placeholder="1. Age-related Macular Degeneration (AMD) OU, geographic atrophy.&#10;2. Functional vision impairment impacting reading and face recognition.&#10;3. Goals: improve reading speed and outdoor mobility." required aria-required="true">1. Age-related Macular Degeneration (AMD) OU, geographic atrophy (H35.313), profound vision loss OS, severe vision loss OD.
+2. Functional vision impairment OU due to central scotoma affecting reading, face recognition, and mobility.
+3. Goals: Improve functional independence and safety for ADLs.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Plan / Rehabilitation Strategy <sup>*</sup></label>
+                    <textarea id="plan" name="plan" rows="5" placeholder="1. Prescribe 4X illuminated stand magnifier for reading.&#10;2. Patient education on eccentric viewing technique.&#10;3. Refer to O&M specialist for outdoor mobility training.&#10;4. RTC 3 months for LV follow-up and aid evaluation." required aria-required="true">1. Optical Aids: Dispensed and trained on Eschenbach Smartlux DIGITAL and Coil 7x stand magnifier. Prescribed No. 527 filter lenses.
+2. Non-optical Aids: Provided writing guides. Discussed adapted kitchen tools and high-contrast items.
+3. Rehabilitation: Referred to O&M specialist for mobility training and OT for ADL training and home modifications.
+4. Patient Education: Discussed eccentric viewing practice, proper lighting, and glare control.
+5. Follow-up: RTC 3 months for low vision evaluation to assess aid effectiveness and further training. Encourage patient to attend support group.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="prognosis">Prognosis (Functional)</label>
+                    <textarea id="prognosis" name="prognosis" rows="2" placeholder="e.g., Fair for improving functional independence with aids and rehabilitation.">Fair for improving functional independence and quality of life with consistent use of prescribed aids and engagement in rehabilitation services.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followUpInstructions">Follow Up Instructions</label>
+                    <textarea id="followUpInstructions" name="followUpInstructions" rows="3" placeholder="e.g., Practice using magnifier daily. Contact O&M specialist. Return in 3 months.">Practice using new magnifiers daily. Contact O&M and OT services within 2 weeks. Return to clinic in 3 months for follow-up low vision evaluation. Report any sudden changes in vision immediately.</textarea>
+                </div>
+            </fieldset>
+
+            <fieldset class="section">
+                <legend>Notes & Reflection</legend>
+                <div class="form-group">
+                    <label for="internalNotes">Internal Notes (Not for Patient)</label>
+                    <textarea id="internalNotes" name="internalNotes" rows="3">Patient is motivated but somewhat overwhelmed by the extent of vision loss. Emphasized small, achievable goals. Needs strong encouragement to use the white cane. Provided contact details for local low vision agencies.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notesReflection">Personal Reflection/Learning Points</label>
+                    <textarea id="notesReflection" name="notesReflection" rows="4">This case underscores the critical role of a multi-disciplinary approach in low vision. Patient's frustration with current aids highlighted the need for hands-on evaluation and training with a range of devices. The comprehensive referral plan addresses multiple areas of functional impairment, which is key for improving quality of life beyond just optical correction. Patience and clear communication of realistic expectations are paramount.</textarea>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Focus CaseX. All rights reserved.</p>
+        <p>Powered by Focus</p>
+    </footer>
+
+    <!-- Your main application script for form logic -->
+    <script src="lowvision-case-script.js"></script>
+    <!-- The PDF export handler script for this case -->
+    <script src="lowvision-case-pdf.js"></script> 
+</body>
+</html>
